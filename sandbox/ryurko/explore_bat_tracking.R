@@ -39,6 +39,27 @@ bat_tracking_data |>
   theme_bw()
 # Well that effectively captures it!
 
+# What's the max bunt length and bat speed?
+max_bunt_values <- bat_tracking_data |>
+  filter(is_bunt) |>
+  summarize(length = max(swing_length, na.rm = TRUE),
+            speed = max(bat_speed, na.rm = TRUE))
+max_bunt_values
+#length    speed
+#1 3.16321 29.66294
+
+# Add these to the previous plots:
+bat_tracking_data |>
+  ggplot(aes(x = swing_length, y = bat_speed,
+             color = is_bunt)) +
+  geom_vline(xintercept = max_bunt_values$length, 
+             linetype = "dashed", color = "black") +
+  geom_hline(yintercept = max_bunt_values$speed, 
+             linetype = "dashed", color = "black") +
+  geom_point(alpha = 0.25) +
+  facet_wrap(~description) +
+  theme_bw()
+
 # Remove the bunts:
 swing_tracking_data <- bat_tracking_data |>
   filter(!is_bunt) |>
@@ -46,7 +67,19 @@ swing_tracking_data <- bat_tracking_data |>
   group_by(batter) |>
   mutate(is_competitive_swing = 
            bat_speed > quantile(bat_speed, probs = 0.1, na.rm = TRUE)) |>
-  ungroup()
+  ungroup() |>
+  # Add an indicator if swing is in bunt zone:
+  mutate(in_bunt_zone = 
+           (swing_length <= max_bunt_values$length |
+              bat_speed <= max_bunt_values$speed)) 
+
+table(swing_tracking_data$in_bunt_zone)
+# FALSE  TRUE 
+# 83873   230 
+
+# Remove these in_bunt_zone for now:
+swing_tracking_data <- swing_tracking_data |>
+  filter(!in_bunt_zone)
 
 # Examine the competitive swing indicators --------------------------------
 
@@ -81,9 +114,9 @@ batter_comp_cutoff |>
   ggplot(aes(x = cutoff)) +
   geom_histogram() +
   # Add a line for the overall 10th percentile:
-  geom_vline(xintercept = quantile(swing_tracking_data$bat_speed, 
-                                   probs = 0.05, na.rm = TRUE),
-             color = "red", linetype = "dashed") +
+  # geom_vline(xintercept = quantile(swing_tracking_data$bat_speed, 
+  #                                  probs = 0.05, na.rm = TRUE),
+  #            color = "red", linetype = "dashed") +
   theme_bw()
 # What is this global cutoff?
 quantile(swing_tracking_data$bat_speed, 
@@ -171,6 +204,34 @@ comp_swing_tracking_data |>
   theme_bw()
 
 
+# How does this vary by count ---------------------------------------------
+
+comp_swing_tracking_data |>
+  ggplot(aes(x = swing_length, color = as.factor(strikes))) +
+  geom_density() +
+  facet_wrap(~balls, ncol = 1) +
+  theme_bw()
+
+comp_swing_tracking_data |>
+  ggplot(aes(x = swing_length, color = as.factor(strikes))) +
+  stat_ecdf() +
+  facet_wrap(~balls, ncol = 4) +
+  theme_bw() +
+  theme(legend.position = "bottom")
+# See a bit of an ordering effect with 2 strikes as shorter swings, don't really
+# see an interaction between strikes and balls
+
+# Flip it...
+comp_swing_tracking_data |>
+  ggplot(aes(x = swing_length, color = as.factor(balls))) +
+  stat_ecdf() +
+  facet_wrap(~strikes, ncol = 3) +
+  theme_bw() +
+  theme(legend.position = "bottom")
+#  Looks like 0 balls are shorter swings, with the longest swings on 3 balls
+#  (which makes sense - but again, not an interaction)
+
+
 # How does this change by pitch type? -------------------------------------
 
 # Look at different pitch type variables:
@@ -223,6 +284,13 @@ comp_swing_tracking_data |>
 
 comp_swing_tracking_data |>
   filter(!is.na(effective_speed), effective_speed > 0) |>
+  ggplot(aes(x = effective_speed, y = swing_length)) +
+  geom_point(alpha = 0.25) +
+  theme_bw()
+
+comp_swing_tracking_data |>
+  filter(!is.na(effective_speed), effective_speed > 0,
+         squared_up) |>
   ggplot(aes(x = effective_speed, y = swing_length)) +
   geom_point(alpha = 0.25) +
   theme_bw()

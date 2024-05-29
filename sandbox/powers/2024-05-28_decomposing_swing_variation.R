@@ -1,10 +1,6 @@
 
 savant <- read.csv("data/savant.csv")
 
-dodger_blue <- rgb(0.1176471, 0.5647059, 1, alpha = 0.5)
-dark_orange <- rgb(1, 0.5490196, 0, alpha = 0.5)
-gray <- rgb(0.745098, 0.745098, 0.745098, alpha = 0.5)
-
 swing <- savant |>
   dplyr::mutate(
 

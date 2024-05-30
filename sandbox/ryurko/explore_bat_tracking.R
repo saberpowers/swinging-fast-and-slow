@@ -77,9 +77,49 @@ table(swing_tracking_data$in_bunt_zone)
 # FALSE  TRUE 
 # 83873   230 
 
+# Grab the foul and swinging strike swings that are below 50 bat speed:
+slow_foul_swing_strikes <- swing_tracking_data |>
+  filter(description %in% c("foul", "foul_tip", "swinging_strike"),
+         bat_speed < 50)
+
 # Remove these in_bunt_zone for now:
 swing_tracking_data <- swing_tracking_data |>
   filter(!in_bunt_zone)
+
+swing_tracking_data |>
+  ggplot(aes(x = swing_length, y = bat_speed,
+             color = is_competitive_swing)) +
+  geom_vline(xintercept = max_bunt_values$length, 
+             linetype = "dashed", color = "black") +
+  geom_hline(yintercept = max_bunt_values$speed, 
+             linetype = "dashed", color = "black") +
+  geom_point(alpha = 0.25) +
+  labs(x = "Swing length", y = "Bat speed",
+       color = "Is MLBAM competitive swing?",
+       title = "Joint distribution of bat speed and swing length with bunts removed",
+       subtitle = "Vertical and horizontal dashed lines indicate max swing length and bat speed on bunts") +
+  facet_wrap(~description) +
+  theme_bw() +
+  theme(legend.position = "bottom")
+
+# What about swings that are not competitive by MLBAM definition and above 50 MPH?
+slow_mlbam_swings <- swing_tracking_data |>
+  filter(!is_competitive_swing, bat_speed > 50)
+
+swing_tracking_data |>
+  ggplot(aes(x = bat_speed)) +
+  stat_ecdf() +
+  geom_vline(xintercept = 50, linetype = "dashed", color = "red") +
+  theme_bw()
+bat_speed_ecdf <- ecdf(swing_tracking_data$bat_speed)
+bat_speed_ecdf(50)
+# [1] 0.02587304
+
+table(swing_tracking_data$is_competitive_swing) / nrow(swing_tracking_data)
+# FALSE      TRUE 
+# 0.1027668 0.8972332 
+
+# So 50 MPH looses 2.6% versus 10.3% w/ MLB rule
 
 # Examine the competitive swing indicators --------------------------------
 

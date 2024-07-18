@@ -1,0 +1,20 @@
+Package: swingfastslow
+Title: Tools for downloading and analyzing swing tracking data from Basball Savant
+Version: 0.0.0.9000
+Authors@R: c(
+  person("Scott", "Powers", role = c("aut", "cre"), email = "scott.powers@rice.edu"),
+  person("Ron", "Yurko", role = "aut", email = "ryurko@andrew.cmu.edu"))
+Description: In May 2024, MLB released exciting new swing tracking data. Bat speed and swing length
+  are recorded at contact (or at the point in the swing path closest to contacting the ball).
+  Because the batter's timing affects where the measurement occurs along the swing path, care must
+  be taken to avoid erroneous conclusions from the data. In this package, we estimate
+  player-specific intended swing location based on count and pitch location, and we analyze the
+  effect of approach on swing outcomes.
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+  dplyr,
+  lme4,
+  stringr

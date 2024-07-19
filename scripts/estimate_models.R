@@ -1,23 +1,32 @@
 
 devtools::load_all("package/swingfastslow")
-swing <- data.table::fread("data/swing.csv")
 
-data <- swing |>
-  remove_partial_swings() |>
+# Load data and upstream models ----
+
+swing <- data.table::fread("data/swing.csv")
+pitch_outcome_model <- readRDS("models/pitch_outcome_model.rds")
+hit_outcome_model <- readRDS("models/hit_outcome_model.rds")
+
+# Estimate intention model ----
+
+data_intention <- swing |>
   sabRmetrics::get_quadratic_coef(source = "baseballsavant") |>
+  sabRmetrics::get_trackman_metrics() |>
+  remove_partial_swings() |>
+  recreate_squared_up() |>
   dplyr::mutate(
     batter_side_id = paste0(batter_id, bat_side),
     plate_x_ref = ifelse(bat_side == "R", plate_x, -plate_x),
-    plate_y = 17 / 12,  # back of home plate is zero; front is 17 inches
-    plate_time = (-by - sqrt(by^2 - 4 * (ay / 2) * (cy - plate_y))) / (2 * (ay / 2)),
-    plate_speed = 0.6818182 * sqrt(
-      (ax * plate_time + bx)^2 + (ay * plate_time + by)^2 + (az * plate_time + bz)^2
-    ),
-    squared_up = ifelse(
-      test = description == "hit_into_play" & !is.na(launch_speed),
-      yes = (launch_speed / (1.23 * bat_speed + 0.23 * plate_speed)) > 0.8,
-      no = FALSE
-    )
+    is_contact = description %in% c("foul", "hit_into_play"),
+    is_fair = description == "hit_into_play"
   )
 
-intention_model <- fit_intention_model(data)
+intention_model <- fit_intention_model(data_intention)
+
+# Estimate approach model ----
+
+data_approach <- data_intention |>
+  predict_pitch_hit_outcomes(pitch_outcome_model = pitch_outcome_model, hit_outcome_model = hit_outcome_model) |>
+  dplyr::inner_join(intention_model$approach, by = "batter_side_id")
+
+approach_model <- fit_approach_model(data_approach)

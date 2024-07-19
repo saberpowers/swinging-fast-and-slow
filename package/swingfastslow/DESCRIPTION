@@ -18,3 +18,6 @@ Imports:
   dplyr,
   lme4,
   stringr
+Suggests:
+  predpitchscore,
+  sabRmetrics

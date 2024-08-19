@@ -23,21 +23,38 @@ fit_intention_model <- function(data_intention, adaptation_grid_size = 1000) {
 
   # Fit mixed-effects models ----
 
+  data_intention_filtered <- data_intention |>
+    dplyr::filter(squared_up)
+
   fit_bat_speed <- lme4::lmer(
     bat_speed ~ balls + strikes + plate_x_ref + plate_z +
       (1 + strikes + plate_x_ref + plate_z | batter_side_id),
     control = lme4::lmerControl(optimizer = "bobyqa"),
-    data = data_intention |>
-      dplyr::filter(squared_up)
+    data = data_intention_filtered
   )
 
   fit_swing_length <- lme4::lmer(
     swing_length ~ balls + strikes + plate_x_ref + plate_z +
       (1 + strikes + plate_x_ref + plate_z | batter_side_id),
     control = lme4::lmerControl(optimizer = "bobyqa"),
-    data = data_intention |>
-      dplyr::filter(squared_up)
+    data = data_intention_filtered
   )
+
+  # Caution: Fitted values and residuals include non-squared-up swings (from outside training set)
+  # But we can only make a prediction for batters observed in the training set
+  data_intention_pred <- data_intention |>
+    dplyr::filter(batter_side_id %in% data_intention_filtered$batter_side_id)
+
+  fitted_values <- tibble::tibble(
+    swing_length = predict(fit_swing_length, newdata = data_intention_pred),
+    bat_speed = predict(fit_bat_speed, newdata = data_intention_pred)
+  )
+
+  residuals <- tibble::tibble(
+    swing_length = data_intention_pred$swing_length - fitted_values$swing_length,
+    bat_speed = data_intention_pred$bat_speed - fitted_values$bat_speed
+  )
+
 
   # Summarize approach, adaptation and timing ----
 
@@ -96,6 +113,8 @@ fit_intention_model <- function(data_intention, adaptation_grid_size = 1000) {
     list(
       fit_bat_speed = fit_bat_speed,
       fit_swing_length = fit_swing_length,
+      fitted_values = fitted_values,
+      residuals = residuals,
       approach = approach,
       adaptation = adaptation,
       timing = timing

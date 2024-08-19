@@ -20,7 +20,7 @@ data_with_pred <- data |>
 # Estimate intention model ----
 
 data_intention <- data_with_pred |>
-  dplyr::filter(!is.na(bat_speed), !is.na(swing_length)) |>
+  dplyr::filter(!is.na(balls), !is.na(strikes), !is.na(bat_speed), !is.na(swing_length)) |>
   remove_partial_swings() |>
   recreate_squared_up() |>
   dplyr::mutate(
@@ -41,43 +41,7 @@ data_approach <- data_intention |>
 approach_model <- fit_approach_model(data_approach)
 
 
-# Caculate the run value of different approaches ----
+# Write results to file ----
 
-approach_grid <- intention_model$approach |>
-  with(
-    data.frame(
-      strikes_bat_speed = c(-3:3, -1, 1) * sd(strikes_bat_speed),
-      strikes_swing_length = c(-3:3, 1, -1) * sd(strikes_swing_length)
-    )
-  )
-
-pred_outcome_pitch_adjusted <- adjust_outcome_for_approach(
-  pred_outcome_pitch = data_with_pred,
-  approach = approach_grid,
-  approach_model = approach_model
-)
-
-# Print a pitch-level summary of approach effects
-pred_outcome_pitch_adjusted |>
-  dplyr::group_by(bat_speed = strikes_bat_speed, swing_length = strikes_swing_length, strikes) |>
-  dplyr::summarize(
-    mean_prob_contact = weighted.mean(prob_contact, w = prob_swing),
-    mean_pred_hit = weighted.mean(pred_hit, w = prob_swing * prob_contact * prob_fair),
-    .groups = "drop"
-  ) |>
-  print(n = 30)
-
-# Calculate a plate-appearance level summary of approach effects
-approach_run_value <- pred_outcome_pitch_adjusted |>
-  dplyr::group_by(strikes_bat_speed, strikes_swing_length, balls, strikes) |>
-  dplyr::summarize(   # NOTE: This part should probably be functionized
-    mean_prob_hbp = mean((1 - prob_swing) * prob_hbp),
-    mean_prob_ball = mean((1 - prob_swing) * (1 - prob_hbp) * (1 - prob_strike)),
-    mean_prob_strike = mean((1 - prob_swing) * (1 - prob_hbp) * prob_strike + prob_swing * (1 - prob_contact)),
-    mean_prob_foul = mean(prob_swing * prob_contact * (1 - prob_fair)),
-    mean_prob_fair = mean(prob_swing * prob_contact * prob_fair),
-    mean_pred_hit = weighted.mean(pred_hit, w = prob_swing * prob_contact * prob_fair),
-    .groups = "drop"
-  ) |>
-  dplyr::group_by(strikes_bat_speed, strikes_swing_length) |>
-  calculate_pred_outcome_pa(linear_weight = linear_weight)
+saveRDS(intention_model, file = "models/intention.rds")
+saveRDS(approach_model, file = "models/approach.rds")

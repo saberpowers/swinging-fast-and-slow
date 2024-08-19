@@ -110,7 +110,7 @@ calculate_pred_outcome_pa <- function(pred_outcome_by_count,
     dplyr::left_join(linear_weight, by = "event") |>
     dplyr::group_by_at(existing_group_vars) |>
     dplyr::summarize(
-      linear_weight = weighted.mean(dplyr::coalesce(mean_pred_hit, linear_weight), w = prob)
+      runs = weighted.mean(dplyr::coalesce(mean_pred_hit, linear_weight), w = prob)
     )
   
   return(pred_outcome_pa)

@@ -2,12 +2,24 @@
 medium <- "beamer"  # options: "article", "beamer" or "twitter"
 
 
-# Load models from file ----
+# Load models and data from file ----
 
 devtools::load_all("package/swingfastslow")
 intention_model <- readRDS("models/intention.rds")
 approach_model <- readRDS("models/approach.rds")
-
+hit_outcome_model <- readRDS("models/hit_outcome_model.rds")
+pitch_outcome_model <- readRDS("models/pitch_outcome_model.rds")
+linear_weight <- read.csv("models/linear_weight.csv")
+data <- data.table::fread("data/baseballsavant.csv") |>
+  dplyr::filter(!is.na(balls), !is.na(strikes), !is.na(bat_speed), !is.na(swing_length)) |>
+  sabRmetrics::get_quadratic_coef(source = "baseballsavant") |>
+  sabRmetrics::get_trackman_metrics() |>
+  remove_partial_swings() |>
+  recreate_squared_up() |>
+  predict_pitch_hit_outcomes(
+    pitch_outcome_model = pitch_outcome_model,
+    hit_outcome_model = hit_outcome_model
+  )
 
 # Preliminaries ----
 
@@ -68,14 +80,7 @@ open_device <- function(filename,
 
 # Counterintuitive results ----
 
-data <- data.table::fread("data/baseballsavant.csv")
-
 data_plot <- data |>
-  dplyr::filter(!is.na(balls), !is.na(strikes), !is.na(bat_speed), !is.na(swing_length)) |>
-  sabRmetrics::get_quadratic_coef(source = "baseballsavant") |>
-  sabRmetrics::get_trackman_metrics() |>
-  remove_partial_swings() |>
-  recreate_squared_up() |>
   dplyr::group_by(batter_id) |>
   dplyr::mutate(relative_bat_speed = bat_speed - mean(bat_speed)) |>
   dplyr::ungroup()
@@ -302,7 +307,7 @@ create_swing_diagram <- function(rotation_angle, ball_loc, label) {
 }
 
 
-# The Smoking Gun ----
+# Timing ----
 
 {
   open_device("swing_metrics_intended", medium, height = 3, width = 3)
@@ -350,39 +355,27 @@ create_swing_diagram <- function(rotation_angle, ball_loc, label) {
 
 # Caculate the run value of different approaches ----
 
+# Identify the approaches for which we want to calculate value
 approach_matrix <- intention_model$approach |>
   dplyr::select(strikes_swing_length, strikes_bat_speed) |>
   as.matrix()
-clusters <- kmeans(approach_matrix, centers = 50)$centers
-convex_hull <- approach_matrix[chull(approach_matrix), ]
+approach_cluster <- kmeans(approach_matrix, centers = 50)$centers
+approach_chull <- approach_matrix[chull(approach_matrix), ]
+approach_tibble <- tibble::as_tibble(rbind(approach_cluster, approach_chull))
+approach_list <- split(approach_tibble, f = 1:nrow(approach_tibble))
 
-pred_outcome_pitch_adjusted <- adjust_outcome_for_approach(
-  pred_outcome_pitch = data_with_pred,
-  approach = tibble::as_tibble(rbind(clusters, convex_hull)),
-  approach_model = approach_model
+approach_value_list <- pbapply::pblapply(
+  X = approach_list,
+  FUN = evaluate_approach,
+  pred_outcome_pitch = data,
+  approach_model = approach_model,
+  linear_weight = linear_weight
 )
-
-# Print a pitch-level summary of approach effects
-pred_outcome_pitch_adjusted |>
-  dplyr::group_by(bat_speed = strikes_bat_speed, swing_length = strikes_swing_length, strikes) |>
-  dplyr::summarize(
-    mean_prob_contact = weighted.mean(prob_contact, w = prob_swing),
-    mean_pred_hit = weighted.mean(pred_hit, w = prob_swing * prob_contact * prob_fair),
-    .groups = "drop"
-  ) |>
-  print(n = 30)
-
-# Calculate a plate-appearance level summary of approach effects
-approach_runs <- pred_outcome_pitch_adjusted |>
-  dplyr::group_by(strikes_bat_speed, strikes_swing_length, balls, strikes) |>
-  summarize_pitch_outcome() |>
-  dplyr::group_by(strikes_bat_speed, strikes_swing_length) |>
-  calculate_pred_outcome_pa(linear_weight = linear_weight)
-
+approach_value <- do.call(dplyr::bind_rows, approach_value_list)
 
 approach_runs_model <- mgcv::gam(
   runs ~ s(strikes_bat_speed, strikes_swing_length),
-  data = approach_runs
+  data = approach_value
 )
 
 approach_grid <- intention_model$approach |>
@@ -401,7 +394,6 @@ distance_to_nearest_point <- proxy::dist(
 approach_grid <- approach_grid[distance_to_nearest_point < 0.7, ]
 
 approach_grid$runs <- predict(approach_runs_model, newdata = approach_grid)
-
 
 {
   open_device("approach_run_value", medium, height = 5, width = 5)

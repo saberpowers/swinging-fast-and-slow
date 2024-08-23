@@ -5,16 +5,16 @@
 #' `strikes_swing_length`) and returns a table of n * m predictions, one prediction for each pitch
 #' for each approach.
 #' 
-#' @param pred_outcome_pitch a table with columns `prob_contact`, `prob_fair` and `pred_hit`
 #' @param approach a table with columns `strikes_bat_speed` and `strikes_swing_length`
+#' @param pred_outcome_pitch a table with columns `prob_contact`, `prob_fair` and `pred_hit`
 #' @param approach_model a list of fitted GLM models from \code{\link{fit_approach_model}}
 #' 
 #' @returns a table with approach-adjusted `prob_contact`, `prob_fair` and `pred_hit`
 #' 
 #' @export
 #' 
-adjust_outcome_for_approach <- function(pred_outcome_pitch,
-                                        approach,
+adjust_outcome_for_approach <- function(approach,
+                                        pred_outcome_pitch,
                                         approach_model) {
 
   pred_outcome_pitch_expanded <- pred_outcome_pitch |>

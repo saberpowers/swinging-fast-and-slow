@@ -15,7 +15,7 @@
 #'   number of steps in the Markov chain until the probabilities for non-terminal states are below
 #'   `nonterminal_prob_threshold` (default 0.0001%).
 #' 
-#' @returns a table with column `linear_weight` reflecting the run value of a plate apperance with
+#' @returns a table with column `runs` reflecting the run value of a plate apperance with
 #'   the specificed pitch outcome distribution by count
 #' 
 #' @export

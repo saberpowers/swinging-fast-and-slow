@@ -23,6 +23,7 @@ swing <- data |>
   remove_partial_swings() |>
   recreate_squared_up()
 
+
 # Preliminaries ----
 
 color_fg <- "#93a1a1"
@@ -205,7 +206,7 @@ approach_interpreted <- intention_model$approach |>
     ) 
 
 {
-  open_device("approach", medium, height = 4.5, width = 6)
+  open_device("approach", medium, height = 4, width = 5)
   approach_plot <- approach_interpreted |>
     ggplot2::ggplot(ggplot2::aes(x = strikes_swing_length, y = strikes_bat_speed)) +
     ggplot2::geom_point(color = color_fg, alpha = 0.5) +
@@ -225,7 +226,7 @@ approach_interpreted <- intention_model$approach |>
 # Adaptation ----
 
 {
-  open_device("adaptation", medium, height = 4, width = 7)
+  open_device("adaptation", medium, height = 3.5, width = 6)
 
   batter_side_id_1 <- "663538R"
   batter_name_1 <- "Nico Hoerner"
@@ -316,7 +317,7 @@ approach_interpreted <- intention_model$approach |>
     theme_medium() +
     remove_axes() +
     ggplot2::theme(
-      strip.text = ggplot2::element_text(size = 16)
+      strip.text = ggplot2::element_text(size = 12)
     )
   print(adaptation_plot)
   dev.off()
@@ -331,7 +332,7 @@ approach_interpreted <- intention_model$approach |>
     ggplot2::ggplot(ggplot2::aes(x = swing_length, y = bat_speed)) +
     ggplot2::geom_hex(bins = 50) +
     ggplot2::geom_smooth(formula = y ~ s(x, bs = "cs"), method = "gam", color = color_fg) +
-    ggplot2::scale_fill_gradient(low = color_base, high = color_blue) +
+    ggplot2::scale_fill_gradient(low = color_bg, high = color_blue) +
     ggplot2::labs(
       title = "REAL variation",
       x = "INTENDED Swing Length (feet)",
@@ -352,7 +353,7 @@ approach_interpreted <- intention_model$approach |>
     ggplot2::ggplot(ggplot2::aes(x = swing_length, y = bat_speed)) +
     ggplot2::geom_hex(bins = 50) +
     ggplot2::geom_smooth(formula = y ~ s(x, bs = "cs"), method = "gam", color = color_fg) +
-    ggplot2::scale_fill_gradient(low = color_base, high = color_blue) +
+    ggplot2::scale_fill_gradient(low = color_bg, high = color_blue) +
     ggplot2::labs(
       title = "ARITIFACTUAL variation",
       x = "RESIDUAL Swing Length (feet)",
@@ -363,6 +364,118 @@ approach_interpreted <- intention_model$approach |>
       legend.position = "none"
     )
   print(swing_metrics_residual_plot)
+  dev.off()
+}
+
+
+# Effect of approach ----
+
+data_with_approach <- data |>
+  dplyr::filter(strikes == 2) |>
+  dplyr::mutate(batter_side_id = paste0(batter_id, bat_side)) |>
+  dplyr::left_join(intention_model$approach, by = "batter_side_id") |>
+  dplyr::mutate(
+    approach_bat_speed = strikes * strikes_bat_speed,
+    approach_swing_length = strikes * strikes_swing_length
+  )
+
+data_with_approach_adjusted <- data_with_approach |>
+  dplyr::mutate(
+    prob_contact_adj = predict(
+      object = approach_model$fit_contact,
+      newdata = data_with_approach,
+      type = "response"
+    ),
+    pred_hit_adj = predict(
+      object = approach_model$fit_hit,
+      newdata = data_with_approach,
+      type = "response"
+    )
+  )
+
+approach_effect_summary <- data_with_approach_adjusted |>
+  dplyr::group_by(batter_side_id) |>
+  dplyr::summarize(
+    strikes_swing_length = mean(strikes_swing_length) +
+      lme4::fixef(intention_model$fit_swing_length)["strikes"],
+    strikes_bat_speed = mean(strikes_bat_speed) +
+      lme4::fixef(intention_model$fit_bat_speed)["strikes"],
+    prob_contact_diff = mean(prob_contact_adj - prob_contact),
+    pred_hit_diff = mean(pred_hit_adj - pred_hit),
+    .groups = "drop"
+  ) |>
+  # Perform re-centering to compensate for model drift
+  dplyr::mutate(
+    prob_contact_diff = prob_contact_diff - mean(prob_contact_diff, na.rm = TRUE),
+    pred_hit_diff = pred_hit_diff - mean(pred_hit_diff, na.rm = TRUE)
+  )
+
+height <- 2
+width <- 3
+
+{
+  open_device("swing_length_contact", medium = "beamer", height = height, width = width)
+  swing_length_contact_plot <- approach_effect_summary |>
+    ggplot2::ggplot(ggplot2::aes(x = 24 * strikes_swing_length, y = prob_contact_diff)) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg) +
+    ggplot2::geom_point(color = color_fg, alpha = 0.5) +
+    ggplot2::labs(
+      x = "",
+      y = "Contact Effect"
+    ) +
+    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-4%", "0%", "+4%")) +
+    theme_medium()
+  print(swing_length_contact_plot)
+  dev.off()
+}
+
+{
+  open_device("bat_speed_contact", medium = "beamer", height = height, width = width)
+  bat_speed_contact_plot <- approach_effect_summary |>
+    ggplot2::ggplot(ggplot2::aes(x = 2 * strikes_bat_speed, y = prob_contact_diff)) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg) +
+    ggplot2::geom_point(col = color_fg, alpha = 0.5) +
+    ggplot2::labs(
+      x = "",
+      y = ""
+    ) +
+    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-4%", "0%", "+4%")) +
+    theme_medium()
+  print(bat_speed_contact_plot)
+  dev.off()
+}
+
+{
+  open_device("swing_length_power", medium = "beamer", height = height, width = width)
+  swing_length_contact_plot <- approach_effect_summary |>
+    # 1.239 is wOBA scaling factor
+    ggplot2::ggplot(ggplot2::aes(x = 24 * strikes_swing_length, y = 1.239 * pred_hit_diff)) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg) +
+    ggplot2::geom_point(col = color_fg, alpha = 0.5) +
+    ggplot2::labs(
+      x = "2-Strike Swing Length Delta (in)",
+      y = "xwOBA Effect"
+    ) +
+    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-.040", ".000", "+.040")) +
+    theme_medium()
+  print(swing_length_contact_plot)
+  dev.off()
+}
+
+{
+  open_device("bat_speed_power", medium = "beamer", height = height, width = width)
+  bat_speed_contact_plot <- approach_effect_summary |>
+    # 1.239 is wOBA scaling factor
+    ggplot2::ggplot(ggplot2::aes(x = 2 * strikes_bat_speed, y = 1.239 * pred_hit_diff)) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg) +
+    ggplot2::geom_point(col = color_fg, alpha = 0.5) +
+    ggplot2::labs(
+      x = "2-Strike Bat Speed Delta (mph)",
+      y = ""
+    ) +
+    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-.040", ".000", "+.040")) +
+    theme_medium()
+  print(bat_speed_contact_plot)
   dev.off()
 }
 

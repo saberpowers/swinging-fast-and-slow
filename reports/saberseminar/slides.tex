@@ -197,11 +197,21 @@
 \begin{frame}{Adaptation: How do intended swings vary by location?}
   \centering
   \includegraphics[width = \textwidth]{../../figures/beamer/adaptation.pdf}
+  \begin{itemize}
+    \item There's clearly a difference, but it's hard to say why
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Timing: What swing variation remains unexplained?}
   \includegraphics[width = 0.49\textwidth]{../../figures/beamer/swing_metrics_intended.pdf}
   \includegraphics[width = 0.49\textwidth]{../../figures/beamer/swing_metrics_residual.pdf}
+  \begin{itemize}
+    \item Left: Predicted intention for all swings (not just squared up)
+    \item Right: Residuals (relative to intention) for all swings
+    \begin{itemize}
+      \item Pattern matches bat speed through path of swing!
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Outline}
@@ -243,14 +253,21 @@
   \end{enumerate}
   Example: $p_i$ is contact prob, $\hat p_i$ is pitch outcome model estimate
   \begin{align*}
-    \log\left(\frac{p_i}{1 - p_i}\right) = \log\left(\frac{\hat p_i}{1 - \hat p_i}\right) + \beta \cdot \hat\gamma^S_{b_i} \cdot (\mbox{strikes})_i
+    \log\left(\frac{p_i}{1 - p_i}\right) = \log\left(\frac{\hat p_i}{1 - \hat p_i}\right)
+      &+ \beta^{SL} \cdot \hat\gamma^{SL}_{b_i} \cdot (\mbox{strikes})_i\\
+      &+ \beta^{BS} \cdot \hat\gamma^{BS}_{b_i} \cdot (\mbox{strikes})_i
   \end{align*}
   \begin{itemize}
     \item This is instrumental variable regression from causal inference, using count as the instrument
   \end{itemize}
 \end{frame}
 
-\begin{frame}{The Effect of Approach}
+\begin{frame}{The Effect of Approach}{``Effect'' is approach-aware vs. approach-agnostic prediction w/ 2 strikes}
+  \centering
+  \includegraphics[width = 0.49\textwidth]{../../figures/beamer/swing_length_contact.pdf}
+  \includegraphics[width = 0.49\textwidth]{../../figures/beamer/bat_speed_contact.pdf}\\
+  \includegraphics[width = 0.49\textwidth]{../../figures/beamer/swing_length_power.pdf}
+  \includegraphics[width = 0.49\textwidth]{../../figures/beamer/bat_speed_power.pdf}
 \end{frame}
 
 \begin{frame}{Outline}

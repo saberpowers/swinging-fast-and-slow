@@ -22,7 +22,7 @@ number of steps in the Markov chain until the probabilities for non-terminal sta
 \code{nonterminal_prob_threshold} (default 0.0001\%).}
 }
 \value{
-a table with column \code{linear_weight} reflecting the run value of a plate apperance with
+a table with column \code{runs} reflecting the run value of a plate apperance with
 the specificed pitch outcome distribution by count
 }
 \description{

@@ -5,7 +5,7 @@
 \setbeamertemplate{navigation symbols}{\insertframenumber}
 
 \usepackage{hyperref, tikz}
-\usetikzlibrary{arrows.meta}
+\usetikzlibrary{arrows.meta, shapes.geometric}
 \tikzset{>={To[length=3mm,width=3mm]}}
 
 \title{Swinging, Fast and Slow}
@@ -20,6 +20,12 @@
 \begin{frame}
     \maketitle
     \vfill\hfill\includegraphics[width = 4cm]{../images/rice_logo_white.png}
+\end{frame}
+
+\begin{frame}{Question}
+  How much do batters change their swings according to the count?\\
+  ~\\
+  And what are the consequences of these approaches?
 \end{frame}
 
 \begin{frame}{Conclusions (Preview)}
@@ -89,6 +95,7 @@
   \includegraphics[width = 0.49\textwidth]{../../figures/beamer/swing_early.pdf}
   \begin{itemize}
     \item For \alert{identical} swings, timing determines point of measurement
+    \item Swing length and bat speed are \alert{outcomes}, not purely process
   \end{itemize}
 \end{frame}
 
@@ -98,22 +105,25 @@
     align = center,
     minimum height = 1.5cm,
     minimum width = 2cm,
+    every node/.style = {draw},
+    model/.style = {rectangle},
+    value/.style = {ellipse},
     alert/.style = {thick, draw = solarizedAccent}
   ]
-    \node[draw] (intention_model) at (0, 0) {Intention\\Model};
-    \node[draw] (approach) at (3, 2.5) {Approach};
-    \node[draw] (adaptation) at (3, 0) {Adaptation};
-    \node[draw] (timing) at (3, -2.5) {Timing};
-    \node[draw] (pitch_outcome_model) at (6, 0) {Pitch\\Outcome\\Model};
-    \node[draw] (approach_model) at (6, 2.5) {Approach\\Model};
-    \node[draw] (count_value) at (9, 0) {Count\\Value};
-    \node[draw] (approach_value) at (9, 2.5) {Approach\\Value};
+    \node[model] (intention_model) at (0, 0) {Intention\\Model};
+    \node[value] (approach) at (3, 2.5) {Approach};
+    \node[value] (adaptation) at (3, 0) {Adaptation};
+    \node[value] (timing) at (3, -2.5) {Timing};
+    \node[model] (pitch_outcome_model) at (6, 0) {Pitch\\Outcome\\Model};
+    \node[model] (approach_model) at (6, 2.5) {Approach\\Model};
+    \node[model] (markov_model) at (9, 0) {Markov\\Model\\for PA};
+    \node[value] (approach_value) at (9, 2.5) {Approach\\Value};
     \draw (intention_model) -- (approach);
     \draw (intention_model) -- (adaptation);
     \draw (intention_model) -- (timing);
     \draw (pitch_outcome_model) -- (approach_model);
     \draw (approach) -- (approach_model);
-    \draw (count_value) -- (approach_value);
+    \draw (markov_model) -- (approach_value);
     \draw (approach_model) -- (approach_value);
   \end{tikzpicture}
 \end{frame}
@@ -124,22 +134,25 @@
     align = center,
     minimum height = 1.5cm,
     minimum width = 2cm,
+    every node/.style = {draw},
+    model/.style = {rectangle},
+    value/.style = {ellipse},
     alert/.style = {thick, draw = solarizedAccent}
   ]
-    \node[alert] (intention_model) at (0, 0) {\alert{Intention}\\\alert{Model}};
-    \node[draw] (approach) at (3, 2.5) {Approach};
-    \node[draw] (adaptation) at (3, 0) {Adaptation};
-    \node[draw] (timing) at (3, -2.5) {Timing};
-    \node[draw] (pitch_outcome_model) at (6, 0) {Pitch\\Outcome\\Model};
-    \node[draw] (approach_model) at (6, 2.5) {Approach\\Model};
-    \node[draw] (count_value) at (9, 0) {Count\\Value};
-    \node[draw] (approach_value) at (9, 2.5) {Approach\\Value};
+    \node[model, alert] (intention_model) at (0, 0) {\alert{Intention}\\\alert{Model}};
+    \node[value] (approach) at (3, 2.5) {Approach};
+    \node[value] (adaptation) at (3, 0) {Adaptation};
+    \node[value] (timing) at (3, -2.5) {Timing};
+    \node[model] (pitch_outcome_model) at (6, 0) {Pitch\\Outcome\\Model};
+    \node[model] (approach_model) at (6, 2.5) {Approach\\Model};
+    \node[model] (markov_model) at (9, 0) {Markov\\Model\\for PA};
+    \node[value] (approach_value) at (9, 2.5) {Approach\\Value};
     \draw (intention_model) -- (approach);
     \draw (intention_model) -- (adaptation);
     \draw (intention_model) -- (timing);
     \draw (pitch_outcome_model) -- (approach_model);
     \draw (approach) -- (approach_model);
-    \draw (count_value) -- (approach_value);
+    \draw (markov_model) -- (approach_value);
     \draw (approach_model) -- (approach_value);
   \end{tikzpicture}
 \end{frame}
@@ -172,7 +185,7 @@
           \begin{array}{l}
             +~\epsilon_i
           \end{array}
-        \right.\color{solarizedAccent}\leftarrow\mbox{\alert{timing}}
+        \right.
   \end{align*}
 \end{frame}
 
@@ -197,22 +210,25 @@
     align = center,
     minimum height = 1.5cm,
     minimum width = 2cm,
+    every node/.style = {draw},
+    model/.style = {rectangle},
+    value/.style = {ellipse},
     alert/.style = {thick, draw = solarizedAccent}
   ]
-    \node[draw] (intention_model) at (0, 0) {Intention\\Model};
-    \node[draw] (approach) at (3, 2.5) {Approach};
-    \node[draw] (adaptation) at (3, 0) {Adaptation};
-    \node[draw] (timing) at (3, -2.5) {Timing};
-    \node[draw] (pitch_outcome_model) at (6, 0) {Pitch\\Outcome\\Model};
-    \node[alert] (approach_model) at (6, 2.5) {\alert{Approach}\\\alert{Model}};
-    \node[draw] (count_value) at (9, 0) {Count\\Value};
-    \node[draw] (approach_value) at (9, 2.5) {Approach\\Value};
+    \node[model] (intention_model) at (0, 0) {Intention\\Model};
+    \node[value] (approach) at (3, 2.5) {Approach};
+    \node[value] (adaptation) at (3, 0) {Adaptation};
+    \node[value] (timing) at (3, -2.5) {Timing};
+    \node[model] (pitch_outcome_model) at (6, 0) {Pitch\\Outcome\\Model};
+    \node[model, alert] (approach_model) at (6, 2.5) {\alert{Approach}\\\alert{Model}};
+    \node[model] (markov_model) at (9, 0) {Markov\\Model\\for PA};
+    \node[value] (approach_value) at (9, 2.5) {Approach\\Value};
     \draw (intention_model) -- (approach);
     \draw (intention_model) -- (adaptation);
     \draw (intention_model) -- (timing);
     \draw (pitch_outcome_model) -- (approach_model);
     \draw (approach) -- (approach_model);
-    \draw (count_value) -- (approach_value);
+    \draw (markov_model) -- (approach_value);
     \draw (approach_model) -- (approach_value);
   \end{tikzpicture}
 \end{frame}
@@ -220,6 +236,9 @@
 \begin{frame}{Approach Model}
   \begin{enumerate}
     \item Start with pitch outcome model which estimates $\mathbb{P}$(swing), $\mathbb{P}$(contact $\mid$ swing), $\mathbb{P}$(fair $\mid$ contact), $\mathbb{E}$(xwOBA $\mid$ fair), etc.
+    \begin{itemize}
+      \item Gradient boosting w/ 2022-2024 MLB data
+    \end{itemize}
     \item Refit contact, fair and xwOBA models on batter approach, with previous predictions as offset
   \end{enumerate}
   Example: $p_i$ is contact prob, $\hat p_i$ is pitch outcome model estimate
@@ -240,22 +259,25 @@
     align = center,
     minimum height = 1.5cm,
     minimum width = 2cm,
+    every node/.style = {draw},
+    model/.style = {rectangle},
+    value/.style = {ellipse},
     alert/.style = {thick, draw = solarizedAccent}
   ]
-    \node[draw] (intention_model) at (0, 0) {Intention\\Model};
-    \node[draw] (approach) at (3, 2.5) {Approach};
-    \node[draw] (adaptation) at (3, 0) {Adaptation};
-    \node[draw] (timing) at (3, -2.5) {Timing};
-    \node[draw] (pitch_outcome_model) at (6, 0) {Pitch\\Outcome\\Model};
-    \node[draw] (approach_model) at (6, 2.5) {Approach\\Model};
-    \node[draw] (count_value) at (9, 0) {Count\\Value};
-    \node[alert] (approach_value) at (9, 2.5) {\alert{Approach}\\\alert{Value}};
+    \node[model] (intention_model) at (0, 0) {Intention\\Model};
+    \node[value] (approach) at (3, 2.5) {Approach};
+    \node[value] (adaptation) at (3, 0) {Adaptation};
+    \node[value] (timing) at (3, -2.5) {Timing};
+    \node[model] (pitch_outcome_model) at (6, 0) {Pitch\\Outcome\\Model};
+    \node[model] (approach_model) at (6, 2.5) {Approach\\Model};
+    \node[model, alert] (markov_model) at (9, 0) {\alert{Markov}\\\alert{Model}\\\alert{for PA}};
+    \node[value] (approach_value) at (9, 2.5) {Approach\\Value};
     \draw (intention_model) -- (approach);
     \draw (intention_model) -- (adaptation);
     \draw (intention_model) -- (timing);
     \draw (pitch_outcome_model) -- (approach_model);
     \draw (approach) -- (approach_model);
-    \draw (count_value) -- (approach_value);
+    \draw (markov_model) -- (approach_value);
     \draw (approach_model) -- (approach_value);
   \end{tikzpicture}
 \end{frame}
@@ -263,6 +285,11 @@
 \begin{frame}{Is it good to modulate your swing by count?}
   \centering
   \includegraphics[height = 0.9\textheight]{../../figures/beamer/approach_run_value.pdf}
+\end{frame}
+
+\begin{frame}{Is it good to modulate your swing by count?}
+  \centering
+  \includegraphics[height = 0.9\textheight]{../../figures/beamer/approach_run_value_labelled.pdf}
 \end{frame}
 
 \begin{frame}{Conclusions}

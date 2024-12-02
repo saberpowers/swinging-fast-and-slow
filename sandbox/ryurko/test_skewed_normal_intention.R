@@ -98,6 +98,7 @@ intended_bat_speed_summary <-
           })
 # Save this for access:
 write_rds(intended_bat_speed_summary, "sandbox/ryurko/models/intended_bat_speed_summary.rds")
+intended_bat_speed_summary <- read_rds("sandbox/ryurko/models/intended_bat_speed_summary.rds")
 
 
 # Nice - looks good!
@@ -151,6 +152,7 @@ intended_swing_length_summary <-
           })
 # Save this for access:
 write_rds(intended_swing_length_summary, "sandbox/ryurko/models/intended_swing_length_summary.rds")
+intended_swing_length_summary <- read_rds("sandbox/ryurko/models/intended_swing_length_summary.rds")
 
 
 # Perform the next stage model --------------------------------------------
@@ -231,12 +233,13 @@ full_swing_data |>
 # Look at summarizing the residual%s at the player level:
 batter_resid_summary <- full_swing_data |>
   filter(!is.na(percent_resid_swing_length), !is.na(percent_resid_bat_speed)) |>
-  group_by(batter_id, batter_name) |>
+  group_by(batter_side_id, batter_id, batter_name) |>
   summarize(n_swings = n(),
             n_squared_up = sum(as.numeric(squared_up), na.rm = TRUE),
             sd_perc_resid_speed = sd(percent_resid_bat_speed),
             sd_perc_resid_length = sd(percent_resid_swing_length),
-            .groups = "drop")
+            .groups = "drop") |>
+  mutate(squared_up_rate = n_squared_up / n_swings)
 
 # Raw plot of everyone:
 batter_resid_summary |>
@@ -269,13 +272,228 @@ batter_resid_summary |>
 
 batter_resid_summary |>
   filter(n_squared_up >= 30) |>
+  ggplot(aes(x = sd_perc_resid_length, y = squared_up_rate)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth() +
+  labs(x = "Std dev of swing length residual%",
+       y = "Squared-up rate",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  theme_bw()
+
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  ggplot(aes(x = sd_perc_resid_length, y = squared_up_rate)) +
+  geom_text(aes(label = batter_name), size = 1.5) +
+  geom_smooth() +
+  labs(x = "Std dev of swing length residual%",
+       y = "Squared-up rate",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  theme_bw()
+
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  ggplot(aes(x = sd_perc_resid_speed, y = squared_up_rate)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth() +
+  labs(x = "Std dev of bat speed residual%",
+       y = "Squared-up rate",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  theme_bw()
+
+# Huh interesting... more a relationship with swing length residual % than bat speed...
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
   ggplot(aes(x = sd_perc_resid_length, y = sd_perc_resid_speed)) +
+  geom_point(alpha = 0.5, aes(color = squared_up_rate)) +
+  scale_color_gradient(low = "darkblue", high = "darkorange") +
+  geom_smooth() +
+  labs(x = "Std dev of swing length residual%",
+       y = "Std dev of bat speed residual%",
+       color = "Squared-up rate",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  coord_fixed() +
+  theme_light() +
+  theme(legend.position = "bottom")
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  ggplot(aes(x = sd_perc_resid_length, y = sd_perc_resid_speed)) +
+  geom_smooth() +
   geom_text(aes(label = batter_name), size = 1.5) +
   labs(x = "Std dev of swing length residual%",
        y = "Std dev of bat speed residual%",
        title = "Player-level summary of swing-level variation from intention",
        subtitle = "Only displaying players with minimum of 30 squared-up swings") +
   coord_fixed() +
+  theme_bw()
+
+# Get the posterior means of the intention parameters:
+swing_length_intended_ints <- intent_swing_length_brms |>
+  spread_draws(r_batter_side_id[batter_side_id, term]) |>
+  filter(term == "Intercept") |>
+  summarize(posterior_mean = mean(r_batter_side_id), 
+            posterior_median = median(r_batter_side_id),
+            lower_80 = quantile(r_batter_side_id, 0.1),
+            upper_80 = quantile(r_batter_side_id, 0.9),
+            .groups = "drop")
+
+swing_length_intended_alpha_ints <- intent_swing_length_brms |>
+  spread_draws(r_batter_side_id__alpha[batter_side_id, term]) |>
+  filter(term == "Intercept") |>
+  summarize(posterior_alpha_mean = mean(r_batter_side_id__alpha), 
+            posterior_alpha_median = median(r_batter_side_id__alpha),
+            lower_alpha_80 = quantile(r_batter_side_id__alpha, 0.1),
+            upper_alpha_80 = quantile(r_batter_side_id__alpha, 0.9),
+            .groups = "drop")
+
+bat_speed_intended_ints <- intent_bat_speed_brms |>
+  spread_draws(r_batter_side_id[batter_side_id, term]) |>
+  filter(term == "Intercept") |>
+  summarize(posterior_mean = mean(r_batter_side_id), 
+            posterior_median = median(r_batter_side_id),
+            lower_80 = quantile(r_batter_side_id, 0.1),
+            upper_80 = quantile(r_batter_side_id, 0.9),
+            .groups = "drop")
+
+bat_speed_intended_alpha_ints <- intent_bat_speed_brms |>
+  spread_draws(r_batter_side_id__alpha[batter_side_id, term]) |>
+  filter(term == "Intercept") |>
+  summarize(posterior_alpha_mean = mean(r_batter_side_id__alpha), 
+            posterior_alpha_median = median(r_batter_side_id__alpha),
+            lower_alpha_80 = quantile(r_batter_side_id__alpha, 0.1),
+            upper_alpha_80 = quantile(r_batter_side_id__alpha, 0.9),
+            .groups = "drop")
+
+
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  inner_join(swing_length_intended_ints, by = "batter_side_id") |>
+  ggplot(aes(x = sd_perc_resid_length, y = posterior_mean)) +
+  geom_text(aes(label = batter_name), size = 1.5) +
+  geom_smooth() +
+  labs(x = "Std dev of swing length residual%",
+       y = "Posterior mean of swing length mean intercepts",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  theme_bw()
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  inner_join(swing_length_intended_alpha_ints, by = "batter_side_id") |>
+  ggplot(aes(x = sd_perc_resid_length, y = posterior_alpha_mean)) +
+  geom_text(aes(label = batter_name), size = 1.5) +
+  geom_smooth() +
+  labs(x = "Std dev of swing length residual%",
+       y = "Posterior mean of swing length alpha intercepts",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  theme_bw()
+# observe relationship with mean intercepts but not alpha intercepts
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  inner_join(bat_speed_intended_ints, by = "batter_side_id") |>
+  ggplot(aes(x = sd_perc_resid_speed, y = posterior_mean)) +
+  geom_text(aes(label = batter_name), size = 1.5) +
+  geom_smooth() +
+  labs(x = "Std dev of bat speed residual%",
+       y = "Posterior mean of bat speed mean intercepts",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  theme_bw()
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  inner_join(swing_length_intended_alpha_ints, by = "batter_side_id") |>
+  ggplot(aes(x = sd_perc_resid_speed, y = posterior_alpha_mean)) +
+  geom_text(aes(label = batter_name), size = 1.5) +
+  geom_smooth() +
+  labs(x = "Std dev of bat speed residual%",
+       y = "Posterior mean of bat speed alpha intercepts",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  theme_bw()
+# Same pattern here... 
+
+
+# What about the mean and shapes against each other?
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  inner_join(dplyr::select(swing_length_intended_alpha_ints,
+                           batter_side_id, posterior_alpha_mean), 
+             by = "batter_side_id") |>
+  inner_join(dplyr::select(swing_length_intended_ints,
+                           batter_side_id, posterior_mean), 
+             by = "batter_side_id") |>
+  ggplot(aes(x = posterior_mean, y = posterior_alpha_mean)) +
+  geom_text(aes(label = batter_name), size = 1.5) +
+  geom_smooth() +
+  labs(x = "Posterior mean of swing length mean intercepts",
+       y = "Posterior mean of swing length alpha intercepts",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  theme_bw()
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  inner_join(dplyr::select(bat_speed_intended_alpha_ints,
+                           batter_side_id, posterior_alpha_mean), 
+             by = "batter_side_id") |>
+  inner_join(dplyr::select(bat_speed_intended_ints,
+                           batter_side_id, posterior_mean), 
+             by = "batter_side_id") |>
+  ggplot(aes(x = posterior_mean, y = posterior_alpha_mean)) +
+  geom_text(aes(label = batter_name), size = 1.5) +
+  geom_smooth() +
+  labs(x = "Posterior mean of bat speed mean intercepts",
+       y = "Posterior mean of bat speed alpha intercepts",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  theme_bw()
+
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  inner_join(dplyr::select(swing_length_intended_ints,
+                           batter_side_id, posterior_mean) |>
+               rename(length_posterior_mean = posterior_mean), 
+             by = "batter_side_id") |>
+  inner_join(dplyr::select(bat_speed_intended_ints,
+                           batter_side_id, posterior_mean), 
+             by = "batter_side_id") |>
+  ggplot(aes(x = posterior_mean, y = length_posterior_mean)) +
+  geom_text(aes(label = batter_name), size = 1.5) +
+  geom_smooth() +
+  labs(x = "Posterior mean of bat speed mean intercepts",
+       y = "Posterior mean of swing length mean intercepts",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
+  theme_bw()
+
+batter_resid_summary |>
+  filter(n_squared_up >= 30) |>
+  inner_join(dplyr::select(swing_length_intended_alpha_ints,
+                           batter_side_id, posterior_alpha_mean) |>
+               rename(length_posterior_mean = posterior_alpha_mean), 
+             by = "batter_side_id") |>
+  inner_join(dplyr::select(bat_speed_intended_alpha_ints,
+                           batter_side_id, posterior_alpha_mean), 
+             by = "batter_side_id") |>
+  ggplot(aes(x = posterior_alpha_mean, y = length_posterior_mean)) +
+  geom_text(aes(label = batter_name), size = 1.5) +
+  geom_smooth() +
+  labs(x = "Posterior mean of bat speed alpha intercepts",
+       y = "Posterior mean of swing length alpha intercepts",
+       title = "Player-level summary of swing-level variation from intention",
+       subtitle = "Only displaying players with minimum of 30 squared-up swings") +
   theme_bw()
 
 
@@ -301,25 +519,6 @@ speed_slopes <- broom.mixed::tidy(swing_length_speed_fit, effects = "ran_vals")
 
 batter_summary_table <- speed_slopes |>
   inner_join(batter_table, by = c("level" = "batter_side_id")) 
-
-# Get the intended swing length posterior means and shapes:
-swing_length_intended_ints <- intent_swing_length_brms |>
-  spread_draws(r_batter_side_id[batter_side_id, term]) |>
-  filter(term == "Intercept") |>
-  summarize(posterior_mean = mean(r_batter_side_id), 
-            posterior_median = median(r_batter_side_id),
-            lower_80 = quantile(r_batter_side_id, 0.1),
-            upper_80 = quantile(r_batter_side_id, 0.9),
-            .groups = "drop")
-
-swing_length_intended_alpha_ints <- intent_swing_length_brms |>
-  spread_draws(r_batter_side_id__alpha[batter_side_id, term]) |>
-  filter(term == "Intercept") |>
-  summarize(posterior_alpha_mean = mean(r_batter_side_id__alpha), 
-            posterior_alpha_median = median(r_batter_side_id__alpha),
-            lower_alpha_80 = quantile(r_batter_side_id__alpha, 0.1),
-            upper_alpha_80 = quantile(r_batter_side_id__alpha, 0.9),
-            .groups = "drop")
 
 swing_length_summary <- swing_length_intended_ints |>
   dplyr::select(batter_side_id, posterior_mean) |>

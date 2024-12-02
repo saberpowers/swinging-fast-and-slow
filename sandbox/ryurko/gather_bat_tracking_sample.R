@@ -1,4 +1,4 @@
-# PURPOSE: Gather initial data from the season so far (8/17/24)
+# PURPOSE: Gather initial data from the 2024 season
 
 #          Updated to use the sabRmetrics package for all data gathering
 
@@ -8,7 +8,7 @@ library(tidyverse)
 # Gather the data ---------------------------------------------------------
 
 START_DATE <- "2024-04-03"
-END_DATE <- "2024-08-17"
+END_DATE <- "2024-09-30"
 
 current_season_data <- sabRmetrics::download_baseballsavant(START_DATE, END_DATE)
 
@@ -24,4 +24,4 @@ bat_tracking_data <- current_season_data |>
     bat_speed, swing_length, launch_speed, launch_angle, hit_coord_x, hit_coord_y,
     description, des)
 
-write_rds(bat_tracking_data, "data/bat_tracking_0817.rds", compress = "gz")
+write_rds(bat_tracking_data, "data/bat_tracking_2024_season.rds", compress = "gz")

@@ -1,4 +1,4 @@
-# PURPOSE: Fit skewed-normal bat speed intention model
+# PURPOSE: Fit gaussian bat speed intention model
 
 library(tidyverse)
 devtools::load_all("package/swingfastslow")
@@ -36,23 +36,18 @@ intent_swing_data <- full_swing_data |>
 
 intent_bat_speed_brms <- 
   brm(bf(bat_speed ~ balls + strikes + plate_x_ref + plate_z + (1 | pitcher_id) +
-           (1 + strikes + plate_x_ref + plate_z | batter_side_id),
-         sigma ~ 1,
-         alpha ~ 1 + (1 | batter_side_id)),
-      family = skew_normal(),
+           (1 + strikes + plate_x_ref + plate_z | batter_side_id)),
       data = intent_swing_data,
       chains = 4,
       cores = 4,
       iter = 4000)
 
-write_rds(intent_bat_speed_brms, "sandbox/ryurko/models/intent_bat_speed_full.rds")
-
-intent_bat_speed_brms <- read_rds("sandbox/ryurko/models/intent_bat_speed_full.rds")
-# loo_speed <- loo(intent_bat_speed_brms)
-# loo_speed
-# I think doing a season split ELPD difference will be better than this...
+write_rds(intent_bat_speed_brms, "sandbox/ryurko/models/intent_bat_speed_normal.rds",
+          compress = "gz")
 
 pp_check(intent_bat_speed_brms)
+# Looks better with skewed normal...
 bayes_R2(intent_bat_speed_brms)
-#     Estimate   Est.Error      Q2.5     Q97.5
-# R2 0.4435797 0.003253911 0.4372329 0.4497678
+#     Estimate   Est.Error      Q2.5   Q97.5
+# R2 0.4474328 0.003385814 0.4407676 0.45403
+

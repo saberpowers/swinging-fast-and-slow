@@ -1,6 +1,4 @@
 
-devtools::load_all("package/swingfastslow")
-
 # Load data and upstream models ----
 
 data <- data.table::fread("data/baseballsavant.csv")
@@ -11,7 +9,7 @@ hit_outcome_model <- readRDS("models/hit_outcome_model.rds")
 data_with_pred <- data |>
   sabRmetrics::get_quadratic_coef(source = "baseballsavant") |>
   sabRmetrics::get_trackman_metrics() |>
-  predict_pitch_hit_outcomes(
+  swingfastslow::predict_pitch_hit_outcomes(
     pitch_outcome_model = pitch_outcome_model,
     hit_outcome_model = hit_outcome_model
   )
@@ -20,9 +18,9 @@ data_with_pred <- data |>
 # Estimate intention model ----
 
 data_intention <- data_with_pred |>
-  dplyr::filter(!is.na(balls), !is.na(strikes), !is.na(bat_speed), !is.na(swing_length)) |>
-  remove_partial_swings() |>
-  recreate_squared_up() |>
+  dplyr::filter(balls < 4, strikes < 3, !is.na(bat_speed), !is.na(swing_length)) |>
+  swingfastslow::remove_partial_swings() |>
+  swingfastslow::recreate_squared_up() |>
   dplyr::mutate(
     batter_side_id = paste0(batter_id, bat_side),
     plate_x_ref = ifelse(bat_side == "R", plate_x, -plate_x),
@@ -30,7 +28,7 @@ data_intention <- data_with_pred |>
     is_fair = description == "hit_into_play"
   )
 
-intention_model <- fit_intention_model(data_intention)
+intention_model <- swingfastslow::fit_intention_model(data_intention)
 
 
 # Estimate approach model ----

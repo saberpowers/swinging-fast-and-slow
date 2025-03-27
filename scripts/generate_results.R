@@ -1,84 +1,33 @@
 
-medium <- "beamer"  # options: "article", "beamer" or "twitter"
+fig_mode <- "light"
+fig_type <- "pdf"
+fig_suffix <- glue::glue("{ifelse(fig_mode == 'dark', '_dark', '')}.{fig_type}")
+color_fg <- sputil::color("fg", mode = fig_mode)
+color_bg <- sputil::color("bg", mode = fig_mode)
+color_base2 <- sputil::color("base2", mode = fig_mode)
+color_blue <- sputil::color("blue", mode = fig_mode)
+
 
 
 # Load models and data from file ----
 
-devtools::load_all("package/swingfastslow")
 intention_model <- readRDS("models/intention.rds")
 approach_model <- readRDS("models/approach.rds")
 hit_outcome_model <- readRDS("models/hit_outcome_model.rds")
 pitch_outcome_model <- readRDS("models/pitch_outcome_model.rds")
 linear_weight <- read.csv("models/linear_weight.csv")
 data <- data.table::fread("data/baseballsavant.csv") |>
-  dplyr::filter(!is.na(balls), !is.na(strikes)) |>
+  dplyr::filter(balls < 4, strikes < 3) |>
   sabRmetrics::get_quadratic_coef(source = "baseballsavant") |>
   sabRmetrics::get_trackman_metrics() |>
-  predict_pitch_hit_outcomes(
+  swingfastslow::predict_pitch_hit_outcomes(
     pitch_outcome_model = pitch_outcome_model,
     hit_outcome_model = hit_outcome_model
   )
 swing <- data |>
   dplyr::filter(!is.na(bat_speed), !is.na(swing_length)) |>
-  remove_partial_swings() |>
-  recreate_squared_up()
-
-
-# Preliminaries ----
-
-color_fg <- "#93a1a1"
-color_bg <- "#002B37"
-color_base <- "#073642"
-color_base2 <- "#eee8d5"
-color_red <- "#dc322f"
-color_orange <- "#cb4b16"
-color_yellow <- "#b58900"
-color_green <- "#859900"
-color_blue <- "#268bd2"
-
-theme_medium <- function() {
-  ggplot2::theme_classic() +
-    ggplot2::theme(
-      axis.line = ggplot2::element_line(color = color_fg),
-      axis.ticks = ggplot2::element_line(color = color_fg),
-      axis.text = ggplot2::element_text(color = color_fg),
-      strip.text = ggplot2::element_text(color = color_fg),
-      text = ggplot2::element_text(color = color_fg),
-      legend.background = ggplot2::element_rect(fill = NA),
-      panel.background = ggplot2::element_rect(fill = color_bg),
-      plot.background = ggplot2::element_rect(fill = color_bg, color = color_bg),
-      strip.background = ggplot2::element_rect(fill = color_bg, color = color_bg)
-    )
-}
-
-remove_axes <- function() {
-  ggplot2::theme(
-    axis.line.x = ggplot2::element_blank(),
-    axis.text.x = ggplot2::element_blank(),
-    axis.ticks.x = ggplot2::element_blank(),
-    axis.line.y = ggplot2::element_blank(),
-    axis.text.y = ggplot2::element_blank(),
-    axis.ticks.y = ggplot2::element_blank()
-  )
-}
-
-open_device <- function(filename,
-                        medium = c("article", "beamer", "twitter"),
-                        height = 7,
-                        width = 7,
-                        ppi_png = 300) {
-  medium <- match.arg(medium)
-  if (medium %in% c("article", "beamer")) {
-    pdf(glue::glue("figures/{medium}/{filename}.pdf"), height = height, width = width)
-  } else if (medium == "twitter") {
-    png(glue::glue("figures/{medium}/{filename}.pdf"),
-      height = ppi_png * height,
-      width = ppi_png * width,
-      ppi = ppi_png
-    )
-  }
-  invisible()
-}
+  swingfastslow::remove_partial_swings() |>
+  swingfastslow::recreate_squared_up()
 
 
 # Counterintuitive results ----
@@ -89,30 +38,29 @@ data_plot <- swing |>
   dplyr::ungroup()
 
 {
-  open_device("counterintuitive", medium, height = 3, width = 6)
-  counterintuitive_plot <- data_plot |>
+  sputil::open_device(paste0("figures/counterintuitive", fig_suffix), height = 3, width = 6)
+  plot <- data_plot |>
     dplyr::mutate(squared_up = ifelse(squared_up, "Yes", "No")) |>
     ggplot2::ggplot(ggplot2::aes(squared_up, relative_bat_speed)) +
-    ggplot2::geom_violin(fill = NA, color = color_fg) +
+    ggplot2::geom_violin(fill = NA, color = color_blue) +
     ggplot2::stat_summary(
       mapping = ggplot2::aes(shape = "Average"),
       fun = mean,
       geom = "point",
       size = 2,
-      color = color_fg,
-      fill = color_fg,
+      color = color_blue,
+      fill = color_blue,
       alpha = 0.5
     ) +
     ggplot2::scale_shape_manual(ggplot2::element_blank(), values = c("Average" = 21)) +
     ggplot2::coord_flip() +
     ggplot2::labs(
-      subtitle = '"Squared Up" = good contact (exit velocity > 80% of theoretical max)',
       x = "Squared Up",
       y = "Bat Speed (mph), Relative to Batter Average"
     ) +
-    theme_medium() +
-    ggplot2::theme(legend.position = c(0.9, 0.5))
-  print(counterintuitive_plot)
+    sputil::theme_sleek(mode = fig_mode) +
+    ggplot2::theme(legend.position = "inside", legend.position.inside = c(0.9, 0.5))
+  print(plot)
   dev.off()
 }
 
@@ -145,12 +93,11 @@ create_swing_diagram <- function(rotation_angle, ball_loc, label) {
     ggplot2::aes(x = x, y = y) +
     ggplot2::geom_segment(
       ggplot2::aes(xend = ball_loc[1], yend = Inf),
-      color = color_base2,
+      color = color_fg,
       linetype = "dotted"
     ) +
-    ggplot2::geom_point(size = 5, color = color_base2) +
+    ggplot2::geom_point(size = 5, shape = 21, color = color_fg, fill = "white") +
     ggplot2::geom_path(data = bat_path, ggplot2::aes(x = x, y = y), color = color_fg) +
-    ggplot2::coord_fixed() +
     ggplot2::annotation_custom(
       bat,
       xmin = min(bat_box_rot[1, ]),
@@ -158,36 +105,36 @@ create_swing_diagram <- function(rotation_angle, ball_loc, label) {
       ymin = min(bat_box_rot[2, ]),
       ymax = max(bat_box_rot[2, ])
     ) +
-    ggplot2::lims(x = c(-1, 9), y = c(-5, 5)) +
+    ggplot2::coord_cartesian(xlim = c(-1, 9), ylim = c(-5, 5)) +
     ggplot2::labs(
       x = label,
       y = ggplot2::element_blank()
     ) +
-    theme_medium() +
-    remove_axes()
+    sputil::theme_sleek(mode = fig_mode) +
+    sputil::remove_axes()
 
   return(swing_plot)
 }
 
 {
-  open_device("swing_late", medium, height = 2, width = 2)
-  swing_late <- create_swing_diagram(
+  sputil::open_device(paste0("figures/swing_late", fig_suffix), height = 2, width = 2)
+  plot <- create_swing_diagram(
     rotation_angle = 20,
     ball_loc = c(6, -1.1),
     label = "LATE Swing"
   )
-  print(swing_late)
+  print(plot)
   dev.off()
 }
 
 {
-  open_device("swing_early", medium, height = 2, width = 2)
-  swing_early <- create_swing_diagram(
+  sputil::open_device(paste0("figures/swing_early", fig_suffix), height = 2, width = 2)
+  plot <- create_swing_diagram(
     rotation_angle = -20,
     ball_loc = c(6, 3.3),
     label = "EARLY Swing"
   )
-  print(swing_early)
+  print(plot)
   dev.off()
 }
 
@@ -206,19 +153,195 @@ approach_interpreted <- intention_model$approach |>
     ) 
 
 {
-  open_device("approach", medium, height = 4, width = 5)
-  approach_plot <- approach_interpreted |>
+  sputil::open_device(paste0("figures/approach", fig_suffix), height = 4, width = 5)
+  plot <- approach_interpreted |>
     ggplot2::ggplot(ggplot2::aes(x = strikes_swing_length, y = strikes_bat_speed)) +
-    ggplot2::geom_point(color = color_fg, alpha = 0.5) +
-    ggplot2::geom_hline(yintercept = 0, color = color_fg, linetype = "dashed") +
-    ggplot2::geom_vline(xintercept = 0, color = color_fg, linetype = "dashed") +
-    ggplot2::lims(x = c(-3, 0.05), y = c(-2.5, 0)) +
+    ggplot2::geom_point(color = color_blue, alpha = 0.5) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
+    ggplot2::coord_cartesian(xlim = c(-3, 0.05), ylim = c(-2.5, 0)) +
     ggplot2::labs(
       x = "Swing Length Reduction per Strike (inches)",
       y = "Bat Speed Reduction per Strike (mph)"
     ) +
-    theme_medium()
-  print(approach_plot)
+    sputil::theme_sleek(mode = fig_mode)
+  print(plot)
+  dev.off()
+}
+
+
+# Effect of approach ----
+
+data_with_approach <- data |>
+  dplyr::filter(strikes == 2) |>
+  dplyr::mutate(batter_side_id = paste0(batter_id, bat_side)) |>
+  dplyr::left_join(intention_model$approach, by = "batter_side_id") |>
+  dplyr::mutate(
+    approach_bat_speed = strikes * strikes_bat_speed,
+    approach_swing_length = strikes * strikes_swing_length
+  )
+
+data_with_approach_adjusted <- data_with_approach |>
+  dplyr::mutate(
+    prob_contact_adj = predict(
+      object = approach_model$fit_contact,
+      newdata = data_with_approach,
+      type = "response"
+    ),
+    pred_hit_adj = predict(
+      object = approach_model$fit_hit,
+      newdata = data_with_approach,
+      type = "response"
+    )
+  )
+
+approach_effect_summary <- data_with_approach_adjusted |>
+  dplyr::group_by(batter_side_id) |>
+  dplyr::summarize(
+    strikes_swing_length = mean(strikes_swing_length) +
+      lme4::fixef(intention_model$fit_swing_length)["strikes"],
+    strikes_bat_speed = mean(strikes_bat_speed) +
+      lme4::fixef(intention_model$fit_bat_speed)["strikes"],
+    prob_contact_diff = mean(prob_contact_adj - prob_contact),
+    pred_hit_diff = mean(pred_hit_adj - pred_hit),
+    .groups = "drop"
+  ) |>
+  # Perform re-centering to compensate for model drift
+  dplyr::mutate(
+    prob_contact_diff = prob_contact_diff - mean(prob_contact_diff, na.rm = TRUE),
+    pred_hit_diff = pred_hit_diff - mean(pred_hit_diff, na.rm = TRUE)
+  )
+
+height <- 3
+width <- 4
+
+{
+  sputil::open_device(paste0("figures/bat_speed_contact", fig_suffix),
+    height = height,
+    width = width
+  )
+  bat_speed_contact_plot <- approach_effect_summary |>
+    ggplot2::ggplot(ggplot2::aes(x = 2 * strikes_bat_speed, y = prob_contact_diff)) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
+    ggplot2::geom_point(col = color_blue, alpha = 0.5) +
+    ggplot2::labs(
+      x = "2-Strike Bat Speed Delta (mph)",
+      y = "Contact Effect"
+    ) +
+    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-4%", "0%", "+4%")) +
+    sputil::theme_sleek(mode = fig_mode)
+  print(bat_speed_contact_plot)
+  dev.off()
+}
+
+{
+  sputil::open_device(paste0("figures/bat_speed_power", fig_suffix),
+    height = height,
+    width = width
+  )
+  bat_speed_contact_plot <- approach_effect_summary |>
+    # 1.242 is wOBA scaling factor for 2024 (https://www.fangraphs.com/guts.aspx)
+    ggplot2::ggplot(ggplot2::aes(x = 2 * strikes_bat_speed, y = 1.242 * pred_hit_diff)) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
+    ggplot2::geom_point(col = color_blue, alpha = 0.5) +
+    ggplot2::labs(
+      x = "2-Strike Bat Speed Delta (mph)",
+      y = "xwOBA Effect"
+    ) +
+    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-.040", ".000", "+.040")) +
+    sputil::theme_sleek(mode = fig_mode)
+  print(bat_speed_contact_plot)
+  dev.off()
+}
+
+
+
+
+# Caculate the run value of different approaches ----
+
+# Identify the approaches for which we want to calculate value
+approach_matrix <- intention_model$approach |>
+  dplyr::select(strikes_swing_length, strikes_bat_speed) |>
+  as.matrix()
+approach_cluster <- kmeans(approach_matrix, centers = 50)$centers
+approach_chull <- approach_matrix[chull(approach_matrix), ]
+approach_tibble <- tibble::as_tibble(rbind(c(0, 0), approach_cluster, approach_chull))
+approach_list <- split(approach_tibble, f = 1:nrow(approach_tibble))
+
+approach_value_list <- pbapply::pblapply(
+  X = approach_list,
+  FUN = swingfastslow::evaluate_approach,
+  pred_outcome_pitch = data,
+  approach_model = approach_model,
+  linear_weight = linear_weight
+)
+approach_value <- do.call(dplyr::bind_rows, approach_value_list) |>
+  dplyr::ungroup() |>
+  dplyr::mutate(
+    # We're going to say that a zero approach is definitionally zero runs above average
+    runs = 500 * (runs - runs[1]),                        # 500 PA scale
+    # Make approach relative to no adjustment, instead of being relative to average
+    strikes_swing_length = 12 * (strikes_swing_length +   # swing length in inches
+      lme4::fixef(intention_model$fit_swing_length)["strikes"]
+    ),
+    strikes_bat_speed = strikes_bat_speed +
+      lme4::fixef(intention_model$fit_bat_speed)["strikes"]
+  )
+
+approach_runs_model <- mgcv::gam(
+  runs ~ s(strikes_bat_speed, strikes_swing_length),
+  data = approach_value
+)
+
+batter <- data |>
+  dplyr::mutate(
+    batter_side_id = paste0(batter_id, bat_side),
+    batter_name_comma = stringr::str_locate(batter_name, ",")[, "start"],
+    batter_name_last = substring(batter_name, 1, batter_name_comma - 1),
+    batter_initial_first = substring(batter_name, batter_name_comma + 2, batter_name_comma + 2),
+    batter_name_short = paste(batter_initial_first, batter_name_last)
+  ) |>
+  dplyr::distinct(batter_side_id, batter_name_short)
+
+approach_grid <- intention_model$approach |>
+  with(
+    expand.grid(
+      strikes_swing_length = seq(-3, 0.5, length = 200),
+      strikes_bat_speed = seq(-2.5, -0.25, length = 200)
+    )
+  )
+
+approach_grid_with_pred <- approach_grid |>
+  dplyr::mutate(runs = predict(approach_runs_model, newdata = approach_grid)) |>
+  # Avoid showing predictions that are extrapolating too far
+#  dplyr::filter(runs < 2, runs > -2, abs(strikes_swing_length - strikes_bat_speed) < 1)
+  dplyr::filter(
+    strikes_swing_length - strikes_bat_speed > -1.4,
+    strikes_swing_length - strikes_bat_speed < 2,
+  )
+
+{
+  sputil::open_device(paste0("figures/approach_run_value", fig_suffix), height = 4, width = 5)
+  plot <- approach_grid_with_pred |>
+    ggplot2::ggplot(ggplot2::aes(strikes_swing_length, strikes_bat_speed)) +
+    ggplot2::geom_raster(ggplot2::aes(fill = runs)) +
+    ggplot2::geom_point(data = approach_interpreted, color = "black", alpha = 0.5) +
+    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
+    ggplot2::scale_fill_gradient2(low = scales::muted("blue"), high = scales::muted("red")) +
+    ggplot2::labs(
+#      title = switch(medium,
+#        beamer = ggplot2::element_blank(),
+#        article = "Is it good to modulate your swing by count?"
+#      ),
+#      subtitle = "Estimated run value of approach applied to average batter",
+      x = "Swing Length Reduction per Strike (inches)",
+      y = "Bat Speed Reduction per Strike (mph)",
+      fill = "Runs per 500 PA"
+    ) +
+    sputil::theme_sleek(mode = fig_mode) +
+    ggplot2::theme(legend.position = "inside", legend.position.inside = c(0.18, 0.71))
+  print(plot)
   dev.off()
 }
 
@@ -226,7 +349,7 @@ approach_interpreted <- intention_model$approach |>
 # Adaptation ----
 
 {
-  open_device("adaptation", medium, height = 3.5, width = 6)
+  sputil::open_device(paste0("figures/adaptation", fig_suffix), height = 3.5, width = 6)
 
   batter_side_id_1 <- "663538R"
   batter_name_1 <- "Nico Hoerner"
@@ -295,7 +418,7 @@ approach_interpreted <- intention_model$approach |>
     ggplot2::geom_rect(
       data = strike_zone,
       mapping = ggplot2::aes(xmin = -17 / 24, xmax = 17 / 24, ymin = sz_bot, ymax = sz_top),
-      color = color_bg,
+      color = "black",
       alpha = 0.5,
       fill = NA,
       linetype = "dashed",
@@ -305,291 +428,19 @@ approach_interpreted <- intention_model$approach |>
       data = strike_zone,
       mapping = ggplot2::aes(x = bat_side_x, xend = bat_side_x, y = 1.1, yend = 3.9),
       inherit.aes = FALSE,
-      color = color_bg,
+      color = "black",
       linewidth = 2
     ) +
     ggplot2::labs(
-      subtitle = "Swing length predicted by intention model, assuming 0-0 count",
+#      subtitle = "Swing length predicted by intention model, assuming 0-0 count",
       fill = "Intended\nSwing\nLength",
       x = ggplot2::element_blank(),
       y = ggplot2::element_blank()
     ) +
-    theme_medium() +
-    remove_axes() +
-    ggplot2::theme(
-      strip.text = ggplot2::element_text(size = 12)
-    )
+    sputil::theme_sleek(mode = fig_mode) +
+    sputil::remove_axes() +
+    ggplot2::theme(strip.text = ggplot2::element_text(size = 12))
   print(adaptation_plot)
   dev.off()
 }
 
-
-# Timing ----
-
-{
-  open_device("swing_metrics_intended", medium, height = 3, width = 3)
-  swing_metrics_intended_plot <- intention_model$fitted_values |>
-    ggplot2::ggplot(ggplot2::aes(x = swing_length, y = bat_speed)) +
-    ggplot2::geom_hex(bins = 50) +
-    ggplot2::geom_smooth(formula = y ~ s(x, bs = "cs"), method = "gam", color = color_fg) +
-    ggplot2::scale_fill_gradient(low = color_bg, high = color_blue) +
-    ggplot2::labs(
-      title = "REAL variation",
-      x = "INTENDED Swing Length (feet)",
-      y = "INTENDED Bat Speed (mph)",
-      fill = "Frequency"
-    ) +
-    theme_medium() +
-    ggplot2::theme(
-      legend.position = "none"
-    )
-  print(swing_metrics_intended_plot)
-  dev.off()
-}
-
-{
-  open_device("swing_metrics_residual", medium, height = 3, width = 3)
-  swing_metrics_residual_plot <- intention_model$residuals |>
-    ggplot2::ggplot(ggplot2::aes(x = swing_length, y = bat_speed)) +
-    ggplot2::geom_hex(bins = 50) +
-    ggplot2::geom_smooth(formula = y ~ s(x, bs = "cs"), method = "gam", color = color_fg) +
-    ggplot2::scale_fill_gradient(low = color_bg, high = color_blue) +
-    ggplot2::labs(
-      title = "ARITIFACTUAL variation",
-      x = "RESIDUAL Swing Length (feet)",
-      y = "RESIDUAL Bat Speed (mph)"
-    ) +
-    theme_medium() +
-    ggplot2::theme(
-      legend.position = "none"
-    )
-  print(swing_metrics_residual_plot)
-  dev.off()
-}
-
-
-# Effect of approach ----
-
-data_with_approach <- data |>
-  dplyr::filter(strikes == 2) |>
-  dplyr::mutate(batter_side_id = paste0(batter_id, bat_side)) |>
-  dplyr::left_join(intention_model$approach, by = "batter_side_id") |>
-  dplyr::mutate(
-    approach_bat_speed = strikes * strikes_bat_speed,
-    approach_swing_length = strikes * strikes_swing_length
-  )
-
-data_with_approach_adjusted <- data_with_approach |>
-  dplyr::mutate(
-    prob_contact_adj = predict(
-      object = approach_model$fit_contact,
-      newdata = data_with_approach,
-      type = "response"
-    ),
-    pred_hit_adj = predict(
-      object = approach_model$fit_hit,
-      newdata = data_with_approach,
-      type = "response"
-    )
-  )
-
-approach_effect_summary <- data_with_approach_adjusted |>
-  dplyr::group_by(batter_side_id) |>
-  dplyr::summarize(
-    strikes_swing_length = mean(strikes_swing_length) +
-      lme4::fixef(intention_model$fit_swing_length)["strikes"],
-    strikes_bat_speed = mean(strikes_bat_speed) +
-      lme4::fixef(intention_model$fit_bat_speed)["strikes"],
-    prob_contact_diff = mean(prob_contact_adj - prob_contact),
-    pred_hit_diff = mean(pred_hit_adj - pred_hit),
-    .groups = "drop"
-  ) |>
-  # Perform re-centering to compensate for model drift
-  dplyr::mutate(
-    prob_contact_diff = prob_contact_diff - mean(prob_contact_diff, na.rm = TRUE),
-    pred_hit_diff = pred_hit_diff - mean(pred_hit_diff, na.rm = TRUE)
-  )
-
-height <- 2
-width <- 3
-
-{
-  open_device("swing_length_contact", medium = "beamer", height = height, width = width)
-  swing_length_contact_plot <- approach_effect_summary |>
-    ggplot2::ggplot(ggplot2::aes(x = 24 * strikes_swing_length, y = prob_contact_diff)) +
-    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg) +
-    ggplot2::geom_point(color = color_fg, alpha = 0.5) +
-    ggplot2::labs(
-      x = "",
-      y = "Contact Effect"
-    ) +
-    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-4%", "0%", "+4%")) +
-    theme_medium()
-  print(swing_length_contact_plot)
-  dev.off()
-}
-
-{
-  open_device("bat_speed_contact", medium = "beamer", height = height, width = width)
-  bat_speed_contact_plot <- approach_effect_summary |>
-    ggplot2::ggplot(ggplot2::aes(x = 2 * strikes_bat_speed, y = prob_contact_diff)) +
-    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg) +
-    ggplot2::geom_point(col = color_fg, alpha = 0.5) +
-    ggplot2::labs(
-      x = "",
-      y = ""
-    ) +
-    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-4%", "0%", "+4%")) +
-    theme_medium()
-  print(bat_speed_contact_plot)
-  dev.off()
-}
-
-{
-  open_device("swing_length_power", medium = "beamer", height = height, width = width)
-  swing_length_contact_plot <- approach_effect_summary |>
-    # 1.239 is wOBA scaling factor
-    ggplot2::ggplot(ggplot2::aes(x = 24 * strikes_swing_length, y = 1.239 * pred_hit_diff)) +
-    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg) +
-    ggplot2::geom_point(col = color_fg, alpha = 0.5) +
-    ggplot2::labs(
-      x = "2-Strike Swing Length Delta (in)",
-      y = "xwOBA Effect"
-    ) +
-    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-.040", ".000", "+.040")) +
-    theme_medium()
-  print(swing_length_contact_plot)
-  dev.off()
-}
-
-{
-  open_device("bat_speed_power", medium = "beamer", height = height, width = width)
-  bat_speed_contact_plot <- approach_effect_summary |>
-    # 1.239 is wOBA scaling factor
-    ggplot2::ggplot(ggplot2::aes(x = 2 * strikes_bat_speed, y = 1.239 * pred_hit_diff)) +
-    ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg) +
-    ggplot2::geom_point(col = color_fg, alpha = 0.5) +
-    ggplot2::labs(
-      x = "2-Strike Bat Speed Delta (mph)",
-      y = ""
-    ) +
-    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-.040", ".000", "+.040")) +
-    theme_medium()
-  print(bat_speed_contact_plot)
-  dev.off()
-}
-
-
-
-
-# Caculate the run value of different approaches ----
-
-# Identify the approaches for which we want to calculate value
-approach_matrix <- intention_model$approach |>
-  dplyr::select(strikes_swing_length, strikes_bat_speed) |>
-  as.matrix()
-approach_cluster <- kmeans(approach_matrix, centers = 50)$centers
-approach_chull <- approach_matrix[chull(approach_matrix), ]
-approach_tibble <- tibble::as_tibble(rbind(c(0, 0), approach_cluster, approach_chull))
-approach_list <- split(approach_tibble, f = 1:nrow(approach_tibble))
-
-approach_value_list <- pbapply::pblapply(
-  X = approach_list,
-  FUN = evaluate_approach,
-  pred_outcome_pitch = data,
-  approach_model = approach_model,
-  linear_weight = linear_weight
-)
-approach_value <- do.call(dplyr::bind_rows, approach_value_list) |>
-  dplyr::ungroup() |>
-  dplyr::mutate(
-    # We're going to say that a zero approach is definitionally zero runs above average
-    runs = 500 * (runs - runs[1]),                        # 500 PA scale
-    # Make approach relative to no adjustment, instead of being relative to average
-    strikes_swing_length = 12 * (strikes_swing_length +   # swing length in inches
-      lme4::fixef(intention_model$fit_swing_length)["strikes"]
-    ),
-    strikes_bat_speed = strikes_bat_speed +
-      lme4::fixef(intention_model$fit_bat_speed)["strikes"]
-  )
-
-approach_runs_model <- mgcv::gam(
-  runs ~ s(strikes_bat_speed, strikes_swing_length),
-  data = approach_value
-)
-
-approach_grid <- intention_model$approach |>
-  with(
-    expand.grid(
-      strikes_swing_length = seq(-3, 0, length = 200),
-      strikes_bat_speed = seq(-2.5, -0.25, length = 200)
-    )
-  )
-
-approach_grid_with_pred <- approach_grid |>
-  dplyr::mutate(runs = predict(approach_runs_model, newdata = approach_grid)) |>
-  # Avoid showing predictions that are extrapolating to far
-  dplyr::filter(runs < 3, runs > -4.5)
-
-batter <- data |>
-  dplyr::mutate(
-    batter_side_id = paste0(batter_id, bat_side),
-    batter_name_comma = stringr::str_locate(batter_name, ",")[, "start"],
-    batter_name_last = substring(batter_name, 1, batter_name_comma - 1),
-    batter_initial_first = substring(batter_name, batter_name_comma + 2, batter_name_comma + 2),
-    batter_name_short = paste(batter_initial_first, batter_name_last)
-  ) |>
-  dplyr::distinct(batter_side_id, batter_name_short)
-
-{
-  open_device("approach_run_value", medium, height = 4, width = 5)
-  approach_run_value_plot <- approach_grid_with_pred |>
-    ggplot2::ggplot(ggplot2::aes(strikes_swing_length, strikes_bat_speed)) +
-    ggplot2::geom_raster(ggplot2::aes(fill = runs)) +
-    ggplot2::geom_point(data = approach_interpreted, color = "#002B37", alpha = 0.5) +
-    ggplot2::scale_fill_gradient2(low = scales::muted("blue"), high = scales::muted("red")) +
-    ggplot2::geom_hline(yintercept = 0, color = color_fg, linetype = "dashed") +
-    ggplot2::geom_vline(xintercept = 0, color = color_fg, linetype = "dashed") +
-    ggplot2::lims(x = c(-3, 0.05), y = c(-2.5, 0)) +
-    ggplot2::labs(
-      title = switch(medium,
-        beamer = ggplot2::element_blank(),
-        article = "Is it good to modulate your swing by count?"
-      ),
-      subtitle = "Estimated run value of approach applied to average batter",
-      x = "Swing Length Reduction per Strike (inches)",
-      y = "Bat Speed Reduction per Strike (mph)",
-      fill = "Runs per 500 PA"
-    ) +
-    theme_medium() +
-    ggplot2::theme(
-      legend.position = c(0.18, 0.71)
-    )
-  print(approach_run_value_plot)
-  dev.off()
-}
-
-{
-  open_device("approach_run_value_labelled", medium, height = 4, width = 5)
-  approach_run_value_labelled_plot <- approach_run_value_plot +
-    ggrepel::geom_label_repel(
-      mapping = ggplot2::aes(label = batter_name_short),
-      data = approach_interpreted |>
-        dplyr::left_join(batter, by = "batter_side_id") |>
-        dplyr::filter(
-          batter_side_id %in% c(
-            "677594R",  # Julio Rodriguez
-            "663538R",  # Nico Hoerner
-            "519203L",  # Anthony Rizzo
-            "676801R",  # Chas McCormick
-            "668939L",  # Adley Rutschman
-            "650490R",  # Yandy Diaz
-            "665742L"   # Juan Soto
-          )
-        ),
-      color = color_fg,
-      fill = color_bg
-    )
-  print(approach_run_value_labelled_plot)
-  dev.off()
-}

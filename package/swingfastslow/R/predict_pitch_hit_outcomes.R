@@ -22,6 +22,7 @@
 #'
 #' @references https://github.com/saberpowers/predictive-pitch-score
 #' 
+#' @export
 predict_pitch_hit_outcomes <- function(data, pitch_outcome_model, hit_outcome_model) {
 
   data_enhanced <- data

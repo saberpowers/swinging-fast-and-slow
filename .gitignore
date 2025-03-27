@@ -2,6 +2,7 @@
 data/*
 figures/*
 models/*
+*.pdf
 
 # macOS junk
 *.DS_Store

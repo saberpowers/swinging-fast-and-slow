@@ -24,6 +24,11 @@ full_swing_data <- read_rds("data/bat_tracking_2024_season.rds") |>
 intent_bat_speed_brms <- read_rds("sandbox/ryurko/models/intent_bat_speed_full.rds")
 intent_swing_length_brms <- read_rds("sandbox/ryurko/models/intent_swing_length_full.rds")
 
+
+# Get variances -----------------------------------------------------------
+
+
+
 # Summarize the fixed effects ---------------------------------------------
 
 # Use the b versions of the fixed effects, first for bat speed:

@@ -1,4 +1,6 @@
 
+# Preliminaries ----
+
 fig_mode <- "light"
 fig_type <- "pdf"
 fig_suffix <- glue::glue("{ifelse(fig_mode == 'dark', '_dark', '')}.{fig_type}")
@@ -7,8 +9,6 @@ color_bg <- sputil::color("bg", mode = fig_mode)
 color_base2 <- sputil::color("base2", mode = fig_mode)
 color_blue <- sputil::color("blue", mode = fig_mode)
 
-
-
 # Load models and data from file ----
 
 intention_model <- readRDS("models/intention.rds")
@@ -16,6 +16,7 @@ approach_model <- readRDS("models/approach.rds")
 hit_outcome_model <- readRDS("models/hit_outcome_model.rds")
 pitch_outcome_model <- readRDS("models/pitch_outcome_model.rds")
 linear_weight <- read.csv("models/linear_weight.csv")
+player <- data.table::fread("data/player.csv")
 data <- data.table::fread("data/baseballsavant.csv") |>
   dplyr::filter(balls < 4, strikes < 3) |>
   sabRmetrics::get_quadratic_coef(source = "baseballsavant") |>
@@ -30,7 +31,7 @@ swing <- data |>
   swingfastslow::recreate_squared_up()
 
 
-# Counterintuitive results ----
+# 1. Introduction ----
 
 data_plot <- swing |>
   dplyr::group_by(batter_id) |>
@@ -63,9 +64,6 @@ data_plot <- swing |>
   print(plot)
   dev.off()
 }
-
-
-# Swing diagrams ----
 
 create_swing_diagram <- function(rotation_angle, ball_loc, label) {
 
@@ -139,7 +137,9 @@ create_swing_diagram <- function(rotation_angle, ball_loc, label) {
 }
 
 
-# Approach ----
+# 4 Results ----
+
+# 4.1 Intention Model ----
 
 approach_interpreted <- intention_model$approach |>
     # Add in the fixed effect for strikes
@@ -170,7 +170,7 @@ approach_interpreted <- intention_model$approach |>
 }
 
 
-# Effect of approach ----
+# 4.2 Causal Model ----
 
 data_with_approach <- data |>
   dplyr::filter(strikes == 2) |>
@@ -254,10 +254,35 @@ width <- 4
   dev.off()
 }
 
+batter_approach_effect <- approach_effect_summary |>
+  dplyr::mutate(player_id = as.integer(substring(batter_side_id, 1, 6))) |>
+  dplyr::left_join(player, by = "player_id") |>
+  dplyr::filter(!is.na(strikes_swing_length)) |>
+  dplyr::arrange(-prob_contact_diff) |>
+  dplyr::mutate(rank = 1:dplyr::n()) |>
+  dplyr::select(
+    rank, name_full, strikes_swing_length, strikes_bat_speed, prob_contact_diff, pred_hit_diff
+  )
+  
+batter_approach_effect_top <- batter_approach_effect |>
+  dplyr::slice(1:5)
 
+batter_approach_effect_bot <- batter_approach_effect |>
+  dplyr::slice(dplyr::n() - 4:0)
 
+batter_approach_effect_buffer <- batter_approach_effect |>
+  dplyr::slice(1) |>
+  dplyr::mutate(dplyr::across(dplyr::everything(), function(x) {NA})) |>
+  dplyr::mutate(name_full = "...")
 
-# Caculate the run value of different approaches ----
+dplyr::bind_rows(
+  batter_approach_effect_top,
+  batter_approach_effect_buffer,
+  batter_approach_effect_bot
+) |>
+  sputil::write_latex_table("tables/batter_approach_effect.tex")
+
+# Caculate the run value of different approaches
 
 # Identify the approaches for which we want to calculate value
 approach_matrix <- intention_model$approach |>
@@ -346,7 +371,7 @@ approach_grid_with_pred <- approach_grid |>
 }
 
 
-# Adaptation ----
+# 4.3 Other Sources of Swing Variation ----
 
 {
   sputil::open_device(paste0("figures/adaptation", fig_suffix), height = 3.5, width = 6)

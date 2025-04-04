@@ -30,7 +30,7 @@ data_intention <- data |>
   swingfastslow::remove_partial_swings()
 
 if (fit_intention_model) {
-  intention_model_bat_speed <- swingfastslow::fit_intention_model(
+  intention_model_bat_speed <- swingfastslow::fit_intention_model(  # takes about two hours
     data_intention = data_intention,
     swing_metric = "bat_speed"
   )

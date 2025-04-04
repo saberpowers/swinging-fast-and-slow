@@ -34,7 +34,7 @@ fit_intention_model <- function(data_intention, swing_metric = c("bat_speed", "s
     data = intent_swing_data,
     chains = 4,
     cores = 4,
-    iter = 4000
+    iter = switch(wing_metric, bat_speed = 4000, swing_length = 6000)
   )
 
   return(intention_model)

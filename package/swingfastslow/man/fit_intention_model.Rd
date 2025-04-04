@@ -2,28 +2,18 @@
 % Please edit documentation in R/fit_intention_model.R
 \name{fit_intention_model}
 \alias{fit_intention_model}
-\title{Fit swing intention model}
+\title{Fit skew-normal swing intention model}
 \usage{
-fit_intention_model(data_intention, adaptation_grid_size = 1000)
+fit_intention_model(swing, swing_metric = c("bat_speed", "swing_length"))
 }
 \arguments{
-\item{data_intention}{a dataframe with columns \code{balls}, \code{strikes}, \code{plate_x_ref}, \code{plate_z},
-\code{batter_side_id}, \code{bat_speed} and \code{swing_length}}
+\item{swing}{a dataframe of swings}
 
-\item{adaptation_grid_size}{the number of pitch locations to sample for estimating batter swing
-adaptation. Larger values require more computation but yield more precise estimates.}
+\item{swing_metric}{the response variable: "bat_speed" or "swing_length"}
 }
 \value{
-a list with the following elements:
-\itemize{
-\item{"fit_bat_speed"}{a fitted lme4 model for intended bat speed}
-\item{"fit_swing_length"}{a fitted lme4 model for intended swing length}
-\item{"approach"}{a dataframe summarizing estimated batter approach}
-\item{"adaptation"}{a dataframe summarizing estimated batter adaptation}
-\item{"timing"}{a dataframe summarizing estimated batter timing}
-}
+a brmsfit object
 }
 \description{
-Fit a model to predict bat speed and swing length conditional on "squared-up" contact (a
-surrogated for well-timed swings). Report estimates of batter approach, adaptation and timing.
+This function first a skew-normal swing intention model using BRMS.
 }

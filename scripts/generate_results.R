@@ -13,6 +13,9 @@ color_blue <- sputil::color("blue", mode = fig_mode)
 
 intention_model <- readRDS("models/intention.rds")
 approach_model <- readRDS("models/approach.rds")
+
+approach <- swingfastslow::get_intention_model_summary()
+
 hit_outcome_model <- readRDS("models/hit_outcome_model.rds")
 pitch_outcome_model <- readRDS("models/pitch_outcome_model.rds")
 linear_weight <- read.csv("models/linear_weight.csv")
@@ -141,7 +144,7 @@ create_swing_diagram <- function(rotation_angle, ball_loc, label) {
 
 # 4.1 Intention Model ----
 
-approach_interpreted <- intention_model$approach |>
+approach_interpreted <- approach |>
     # Add in the fixed effect for strikes
     dplyr::mutate(
       # Convert swing length to inches
@@ -159,7 +162,7 @@ approach_interpreted <- intention_model$approach |>
     ggplot2::geom_point(color = color_blue, alpha = 0.5) +
     ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
-    ggplot2::coord_cartesian(xlim = c(-3, 0.05), ylim = c(-2.5, 0)) +
+    ggplot2::coord_cartesian(xlim = c(-3, 0.1), ylim = c(-2.5, -0.5)) +
     ggplot2::labs(
       x = "Swing Length Reduction per Strike (inches)",
       y = "Bat Speed Reduction per Strike (mph)"
@@ -331,19 +334,15 @@ batter <- data |>
 approach_grid <- intention_model$approach |>
   with(
     expand.grid(
-      strikes_swing_length = seq(-3, 0.5, length = 200),
-      strikes_bat_speed = seq(-2.5, -0.25, length = 200)
+      strikes_swing_length = seq(-3, 0.1, length = 200),
+      strikes_bat_speed = seq(-2.5, -0.5, length = 200)
     )
   )
 
 approach_grid_with_pred <- approach_grid |>
   dplyr::mutate(runs = predict(approach_runs_model, newdata = approach_grid)) |>
   # Avoid showing predictions that are extrapolating too far
-#  dplyr::filter(runs < 2, runs > -2, abs(strikes_swing_length - strikes_bat_speed) < 1)
-  dplyr::filter(
-    strikes_swing_length - strikes_bat_speed > -1.4,
-    strikes_swing_length - strikes_bat_speed < 2,
-  )
+  dplyr::filter(runs >= min(approach_value$runs), runs <= max(approach_value$runs))
 
 {
   sputil::open_device(paste0("figures/approach_run_value", fig_suffix), height = 4, width = 5)

@@ -1,9 +1,9 @@
-#' Fit approach model
+#' Fit causal approach model
 #' 
-#' This model estimates the effect of approach (modulating bat speed and swing length according to
-#' count) on contact probability, fair probability and expected hit outcome.
+#' This model estimates the causal effect of approach (modulating bat speed and swing length
+#' according to count) on contact probability, fair probability and expected hit outcome.
 #' 
-#' @param data_approach a dataframe with at least the following columns: `strikes`,
+#' @param data_causal a dataframe with at least the following columns: `strikes`,
 #'   `strikes_bat_speed`, `strikes_swing_length`, `prob_contact`, `is_contact`, `prob_fair`,
 #'   `is_fair`, `pred_hit` and `hit_pred`.
 #' 
@@ -16,15 +16,15 @@
 #' 
 #' @export
 #' 
-fit_approach_model <- function(data_approach) {
+fit_causal_model <- function(data_causal) {
 
-  data_approach <- data_approach |>
+  data_causal <- data_causal |>
     dplyr::mutate(
       approach_bat_speed = strikes * strikes_bat_speed,
       approach_swing_length = strikes * strikes_swing_length
     )
 
-  fit_contact <- data_approach |>
+  fit_contact <- data_causal |>
     with(
       glm(
         formula = is_contact ~ approach_bat_speed + approach_swing_length,
@@ -33,7 +33,7 @@ fit_approach_model <- function(data_approach) {
       )
     )
 
-  fit_fair <- data_approach |>
+  fit_fair <- data_causal |>
     dplyr::filter(is_contact) |>
     with(
       glm(
@@ -43,7 +43,7 @@ fit_approach_model <- function(data_approach) {
       )
     )
 
-  fit_hit <- data_approach |>
+  fit_hit <- data_causal |>
     dplyr::filter(is_fair) |>
     with(
       lm(

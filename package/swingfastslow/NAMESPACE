@@ -3,7 +3,7 @@
 export(adjust_outcome_for_approach)
 export(calculate_pred_outcome_pa)
 export(evaluate_approach)
-export(fit_approach_model)
+export(fit_causal_model)
 export(fit_intention_model)
 export(get_intention_model_summary)
 export(get_primary_fastballs)

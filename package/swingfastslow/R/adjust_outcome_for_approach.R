@@ -7,7 +7,7 @@
 #' 
 #' @param approach a table with columns `strikes_bat_speed` and `strikes_swing_length`
 #' @param pred_outcome_pitch a table with columns `prob_contact`, `prob_fair` and `pred_hit`
-#' @param approach_model a list of fitted GLM models from \code{\link{fit_approach_model}}
+#' @param causal_model a list of fitted GLM models from \code{\link{fit_causal_model}}
 #' 
 #' @returns a table with approach-adjusted `prob_contact`, `prob_fair` and `pred_hit`
 #' 
@@ -15,7 +15,7 @@
 #' 
 adjust_outcome_for_approach <- function(approach,
                                         pred_outcome_pitch,
-                                        approach_model) {
+                                        causal_model) {
 
   pred_outcome_pitch_expanded <- pred_outcome_pitch |>
     dplyr::mutate(join = TRUE) |>   # get all combinations of one row from each table
@@ -32,17 +32,17 @@ adjust_outcome_for_approach <- function(approach,
   pred_outcome_pitch_adjusted <- pred_outcome_pitch_expanded |>
     dplyr::mutate(
       prob_contact = predict(
-        object = approach_model$fit_contact,
+        object = causal_model$fit_contact,
         newdata = pred_outcome_pitch_expanded,
         type = "response"
       ),
       prob_fair = predict(
-        object = approach_model$fit_fair,
+        object = causal_model$fit_fair,
         newdata = pred_outcome_pitch_expanded,
         type = "response"
       ),
       pred_hit = predict(
-        object = approach_model$fit_hit,
+        object = causal_model$fit_hit,
         newdata = pred_outcome_pitch_expanded,
         type = "response"
       )

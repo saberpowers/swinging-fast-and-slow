@@ -4,14 +4,14 @@
 \alias{evaluate_approach}
 \title{Evaluate an approach on the run scale}
 \usage{
-evaluate_approach(approach, pred_outcome_pitch, approach_model, linear_weight)
+evaluate_approach(approach, pred_outcome_pitch, causal_model, linear_weight)
 }
 \arguments{
 \item{approach}{a table with columns \code{strikes_bat_speed} and \code{strikes_swing_length}}
 
 \item{pred_outcome_pitch}{a table with columns \code{prob_contact}, \code{prob_fair} and \code{pred_hit}}
 
-\item{approach_model}{a list of fitted GLM models from \code{\link{fit_approach_model}}}
+\item{causal_model}{a list of fitted GLM models from \code{\link{fit_approach_model}}}
 
 \item{linear_weight}{a table with columns \code{event} and \code{linear_weight}}
 }

@@ -58,7 +58,7 @@ if (fit_causal_model) {
       pitch_outcome_model = pitch_outcome_model,
       hit_outcome_model = hit_outcome_model
     )
-  causal_model <- fit_approach_model(data_causal)
+  causal_model <- fit_causal_model(data_causal)
 } else {
   causal_model <- readRDS("models/causal.rds")
 }
@@ -68,4 +68,4 @@ if (fit_causal_model) {
 
 saveRDS(intention_model_bat_speed, file = "models/intent_bat_speed_full.rds")
 saveRDS(intention_model_swing_length, file = "models/intent_swing_length_full.rds")
-saveRDS(approach_model, file = "models/approach.rds")
+saveRDS(causal_model, file = "models/causal.rds")

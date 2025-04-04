@@ -11,10 +11,14 @@ color_blue <- sputil::color("blue", mode = fig_mode)
 
 # Load models and data from file ----
 
-intention_model <- readRDS("models/intention.rds")
-approach_model <- readRDS("models/approach.rds")
+intention_model_bat_speed <- readRDS("models/intent_bat_speed_full.rds")
+intention_model_swing_length <- readRDS("models/intent_swing_length_full.rds")
+causal_model <- readRDS("models/causal.rds")
 
-approach <- swingfastslow::get_intention_model_summary()
+approach <- swingfastslow::get_intention_model_summary(
+  intention_model_bat_speed = intention_model_bat_speed,
+  intention_model_swing_length = intention_model_swing_length
+)
 
 hit_outcome_model <- readRDS("models/hit_outcome_model.rds")
 pitch_outcome_model <- readRDS("models/pitch_outcome_model.rds")
@@ -178,7 +182,7 @@ approach_interpreted <- approach |>
 data_with_approach <- data |>
   dplyr::filter(strikes == 2) |>
   dplyr::mutate(batter_side_id = paste0(batter_id, bat_side)) |>
-  dplyr::left_join(intention_model$approach, by = "batter_side_id") |>
+  dplyr::left_join(approach, by = "batter_side_id") |>
   dplyr::mutate(
     approach_bat_speed = strikes * strikes_bat_speed,
     approach_swing_length = strikes * strikes_swing_length
@@ -187,12 +191,12 @@ data_with_approach <- data |>
 data_with_approach_adjusted <- data_with_approach |>
   dplyr::mutate(
     prob_contact_adj = predict(
-      object = approach_model$fit_contact,
+      object = causal_model$fit_contact,
       newdata = data_with_approach,
       type = "response"
     ),
     pred_hit_adj = predict(
-      object = approach_model$fit_hit,
+      object = causal_model$fit_hit,
       newdata = data_with_approach,
       type = "response"
     )
@@ -288,7 +292,7 @@ dplyr::bind_rows(
 # Caculate the run value of different approaches
 
 # Identify the approaches for which we want to calculate value
-approach_matrix <- intention_model$approach |>
+approach_matrix <- approach |>
   dplyr::select(strikes_swing_length, strikes_bat_speed) |>
   as.matrix()
 approach_cluster <- kmeans(approach_matrix, centers = 50)$centers
@@ -300,7 +304,7 @@ approach_value_list <- pbapply::pblapply(
   X = approach_list,
   FUN = swingfastslow::evaluate_approach,
   pred_outcome_pitch = data,
-  approach_model = approach_model,
+  causal_model = causal_model,
   linear_weight = linear_weight
 )
 approach_value <- do.call(dplyr::bind_rows, approach_value_list) |>
@@ -331,7 +335,7 @@ batter <- data |>
   ) |>
   dplyr::distinct(batter_side_id, batter_name_short)
 
-approach_grid <- intention_model$approach |>
+approach_grid <- approach |>
   with(
     expand.grid(
       strikes_swing_length = seq(-3, 0.1, length = 200),

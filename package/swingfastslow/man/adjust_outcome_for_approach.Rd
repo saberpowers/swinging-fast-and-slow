@@ -4,14 +4,14 @@
 \alias{adjust_outcome_for_approach}
 \title{Adjust pitch outcome predictions for batter approach}
 \usage{
-adjust_outcome_for_approach(approach, pred_outcome_pitch, approach_model)
+adjust_outcome_for_approach(approach, pred_outcome_pitch, causal_model)
 }
 \arguments{
 \item{approach}{a table with columns \code{strikes_bat_speed} and \code{strikes_swing_length}}
 
 \item{pred_outcome_pitch}{a table with columns \code{prob_contact}, \code{prob_fair} and \code{pred_hit}}
 
-\item{approach_model}{a list of fitted GLM models from \code{\link{fit_approach_model}}}
+\item{causal_model}{a list of fitted GLM models from \code{\link{fit_causal_model}}}
 }
 \value{
 a table with approach-adjusted \code{prob_contact}, \code{prob_fair} and \code{pred_hit}

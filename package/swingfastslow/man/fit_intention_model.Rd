@@ -4,10 +4,13 @@
 \alias{fit_intention_model}
 \title{Fit skew-normal swing intention model}
 \usage{
-fit_intention_model(swing, swing_metric = c("bat_speed", "swing_length"))
+fit_intention_model(
+  data_intention,
+  swing_metric = c("bat_speed", "swing_length")
+)
 }
 \arguments{
-\item{swing}{a dataframe of swings}
+\item{data_intention}{a dataframe of swings}
 
 \item{swing_metric}{the response variable: "bat_speed" or "swing_length"}
 }

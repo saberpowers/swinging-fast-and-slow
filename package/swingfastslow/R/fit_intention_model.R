@@ -2,19 +2,19 @@
 #' 
 #' This function first a skew-normal swing intention model using BRMS.
 #' 
-#' @param swing a dataframe of swings
+#' @param data_intention a dataframe of swings
 #' @param swing_metric the response variable: "bat_speed" or "swing_length"
 #' 
 #' @return a brmsfit object
 #' 
 #' @export
-fit_intention_model <- function(swing, swing_metric = c("bat_speed", "swing_length")) {
+fit_intention_model <- function(data_intention, swing_metric = c("bat_speed", "swing_length")) {
 
   swing_metric <- match.arg(swing_metric)
 
-  primary_fastballs <- get_primary_fastballs(swing)
+  primary_fastballs <- get_primary_fastballs(data_intention)
 
-  intent_swing_data <- swing |>
+  intent_swing_data <- data_intention |>
     dplyr::filter(pitch_type %in% c("FF", "SI", "FC")) |>
     dplyr::left_join(primary_fastballs, by = "pitcher_id") |>
     dplyr::mutate(is_primary = pitch_type == primary_fastball) |>

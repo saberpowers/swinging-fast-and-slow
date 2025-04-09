@@ -19,6 +19,12 @@ approach <- swingfastslow::get_intention_model_summary(
   intention_model_bat_speed = intention_model_bat_speed,
   intention_model_swing_length = intention_model_swing_length
 )
+fixef_strikes_bat_speed <- mean(
+  tidybayes::gather_draws(intention_model_bat_speed, b_strikes)$.value
+)
+fixef_strikes_swing_length <- mean(
+  tidybayes::gather_draws(intention_model_swing_length, b_strikes)$.value
+)
 
 hit_outcome_model <- readRDS("models/hit_outcome_model.rds")
 pitch_outcome_model <- readRDS("models/pitch_outcome_model.rds")
@@ -152,11 +158,8 @@ approach_interpreted <- approach |>
     # Add in the fixed effect for strikes
     dplyr::mutate(
       # Convert swing length to inches
-      strikes_swing_length = 12 * (strikes_swing_length +
-        lme4::fixef(intention_model$fit_swing_length)["strikes"]
-      ),
-      strikes_bat_speed = strikes_bat_speed +
-        lme4::fixef(intention_model$fit_bat_speed)["strikes"]
+      strikes_swing_length = 12 * (strikes_swing_length + fixef_strikes_swing_length),
+      strikes_bat_speed = strikes_bat_speed + fixef_strikes_bat_speed
     ) 
 
 {
@@ -166,7 +169,7 @@ approach_interpreted <- approach |>
     ggplot2::geom_point(color = color_blue, alpha = 0.5) +
     ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
-    ggplot2::coord_cartesian(xlim = c(-3, 0.1), ylim = c(-2.5, -0.5)) +
+    ggplot2::coord_cartesian(xlim = c(-3, 0), ylim = c(-2, 0)) +
     ggplot2::labs(
       x = "Swing Length Reduction per Strike (inches)",
       y = "Bat Speed Reduction per Strike (mph)"
@@ -179,10 +182,26 @@ approach_interpreted <- approach |>
 
 # 4.2 Causal Model ----
 
+display_coef <- function(fit, scale) {
+  paste0(
+    sprintf("%.3f", scale * summary(fit)$coefficients[, "Estimate"]),
+    " $\\pm$",
+    sprintf("%.3f", scale * summary(fit)$coefficients[, "Std. Error"])
+  )
+}
+
+tibble::tibble(
+  # Scale swing length effect by 1/12 to reflect inches rather than feet
+  contact = display_coef(causal_model$fit_contact, scale = c(1, 1, 1 / 12)),
+  fair = display_coef(causal_model$fit_fair, scale = c(1, 1, 1 / 12)),
+  hit = display_coef(causal_model$fit_hit, scale = c(1, 1, 1 / 12))
+) |>
+  sputil::write_latex_table("tables/causal_model.tex")
+
 data_with_approach <- data |>
   dplyr::filter(strikes == 2) |>
   dplyr::mutate(batter_side_id = paste0(batter_id, bat_side)) |>
-  dplyr::left_join(approach, by = "batter_side_id") |>
+  dplyr::inner_join(approach, by = "batter_side_id") |>   # some batters not in intention model
   dplyr::mutate(
     approach_bat_speed = strikes * strikes_bat_speed,
     approach_swing_length = strikes * strikes_swing_length
@@ -205,10 +224,8 @@ data_with_approach_adjusted <- data_with_approach |>
 approach_effect_summary <- data_with_approach_adjusted |>
   dplyr::group_by(batter_side_id) |>
   dplyr::summarize(
-    strikes_swing_length = mean(strikes_swing_length) +
-      lme4::fixef(intention_model$fit_swing_length)["strikes"],
-    strikes_bat_speed = mean(strikes_bat_speed) +
-      lme4::fixef(intention_model$fit_bat_speed)["strikes"],
+    strikes_bat_speed = mean(strikes_bat_speed) + fixef_strikes_bat_speed,
+    strikes_swing_length = mean(strikes_swing_length) + fixef_strikes_swing_length,
     prob_contact_diff = mean(prob_contact_adj - prob_contact),
     pred_hit_diff = mean(pred_hit_adj - pred_hit),
     .groups = "drop"
@@ -233,7 +250,7 @@ width <- 4
     ggplot2::geom_point(col = color_blue, alpha = 0.5) +
     ggplot2::labs(
       x = "2-Strike Bat Speed Delta (mph)",
-      y = "Contact Effect"
+      y = "Contact Effect in 2-Strike Counts"
     ) +
     ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-4%", "0%", "+4%")) +
     sputil::theme_sleek(mode = fig_mode)
@@ -253,7 +270,7 @@ width <- 4
     ggplot2::geom_point(col = color_blue, alpha = 0.5) +
     ggplot2::labs(
       x = "2-Strike Bat Speed Delta (mph)",
-      y = "xwOBA Effect"
+      y = "xwOBA Effect in 2-Strike Counts"
     ) +
     ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-.040", ".000", "+.040")) +
     sputil::theme_sleek(mode = fig_mode)
@@ -313,11 +330,8 @@ approach_value <- do.call(dplyr::bind_rows, approach_value_list) |>
     # We're going to say that a zero approach is definitionally zero runs above average
     runs = 500 * (runs - runs[1]),                        # 500 PA scale
     # Make approach relative to no adjustment, instead of being relative to average
-    strikes_swing_length = 12 * (strikes_swing_length +   # swing length in inches
-      lme4::fixef(intention_model$fit_swing_length)["strikes"]
-    ),
-    strikes_bat_speed = strikes_bat_speed +
-      lme4::fixef(intention_model$fit_bat_speed)["strikes"]
+    strikes_swing_length = 12 * (strikes_swing_length + fixef_strikes_swing_length),
+    strikes_bat_speed = strikes_bat_speed + fixef_strikes_bat_speed
   )
 
 approach_runs_model <- mgcv::gam(
@@ -338,8 +352,8 @@ batter <- data |>
 approach_grid <- approach |>
   with(
     expand.grid(
-      strikes_swing_length = seq(-3, 0.1, length = 200),
-      strikes_bat_speed = seq(-2.5, -0.5, length = 200)
+      strikes_swing_length = seq(-3.5, 0, length = 200),
+      strikes_bat_speed = seq(-2.5, 0, length = 200)
     )
   )
 
@@ -367,6 +381,7 @@ approach_grid_with_pred <- approach_grid |>
       y = "Bat Speed Reduction per Strike (mph)",
       fill = "Runs per 500 PA"
     ) +
+    ggplot2::coord_cartesian(xlim = c(-3, 0), ylim = c(-2, 0)) +
     sputil::theme_sleek(mode = fig_mode) +
     ggplot2::theme(legend.position = "inside", legend.position.inside = c(0.18, 0.71))
   print(plot)
@@ -387,22 +402,23 @@ approach_grid_with_pred <- approach_grid |>
 
   plate_loc_grid <- expand.grid(
     plate_x_ref = seq(from = -1.5, to = 1.5, length = 100),
-    plate_z = seq(from = 1, to = 4, length = 100)
+    plate_z = seq(from = 1, to = 4, length = 100),
+    pitcher_id = 682120   # this is the pitcher with the smallest absolute effect on swing length
   ) |>
     dplyr::mutate(balls = 0, strikes = 0)
 
   plot_data <- plate_loc_grid |>
     dplyr::mutate(
       pred_1 = predict(
-        intention_model$fit_swing_length,
+        intention_model_swing_length,
         newdata = plate_loc_grid |>
           dplyr::mutate(batter_side_id = batter_side_id_1)
-      ),
+      )[, "Estimate"],
       pred_2 = predict(
-        intention_model$fit_swing_length,
+        intention_model_swing_length,
         newdata = plate_loc_grid |>
           dplyr::mutate(batter_side_id = batter_side_id_2)
-      )
+      )[, "Estimate"]
     ) |>
     tidyr::pivot_longer(cols = dplyr::starts_with("pred_")) |>
     dplyr::mutate(
@@ -467,7 +483,7 @@ approach_grid_with_pred <- approach_grid |>
     ) +
     sputil::theme_sleek(mode = fig_mode) +
     sputil::remove_axes() +
-    ggplot2::theme(strip.text = ggplot2::element_text(size = 12))
+    ggplot2::theme(strip.text = ggplot2::element_text(size = 12), legend.position = "right")
   print(adaptation_plot)
   dev.off()
 }

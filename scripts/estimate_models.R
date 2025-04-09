@@ -66,6 +66,11 @@ if (fit_causal_model) {
 
 # Write results to file ----
 
-saveRDS(intention_model_bat_speed, file = "models/intent_bat_speed_full.rds")
-saveRDS(intention_model_swing_length, file = "models/intent_swing_length_full.rds")
-saveRDS(causal_model, file = "models/causal.rds")
+if (fit_intention_model) {
+  saveRDS(intention_model_bat_speed, file = "models/intent_bat_speed_full.rds")
+  saveRDS(intention_model_swing_length, file = "models/intent_swing_length_full.rds")
+}
+
+if (fit_causal_model) {
+  saveRDS(causal_model, file = "models/causal.rds")
+}

@@ -8,11 +8,8 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{authblk}
-\usepackage{tikz}\usetikzlibrary{decorations.pathmorphing}
-%\usepackage[style=authoryear]{biblatex}
 \usepackage{natbib}
 \bibliographystyle{../apa-good}
-%\addbibresource{journal-article.bib}
 
 \title{Swinging, Fast and Slow:\\Interpreting variation in baseball swing tracking metrics}
 \author[1]{Scott Powers}
@@ -57,6 +54,47 @@
 
     \subsection{Intention Model}
     \label{sec:methods-intention}
+
+    We begin with the hypothesis that two covariates explain real (non-artifactual) differences in swing mechanics: ball-strike count and pitch location. To the extent that a batter’s swing tracking metrics co-vary with count, we describe this as their \textit{approach}. To the extent that a batter’s swing tracking metrics co-vary with pitch location, we describe this as swing \textit{adaptation}. Acknowledging that swing timing biases the measurement of bat speed and swing length, we mitigate this confounding bias by filtering on swings that result in squared-up contact against pitchers' primary fastballs. Additionally, based on visualizations of batter swing length and bat speed distributions (such as examples in INSERT FIGURE REFERENCE?) we are also interested in capturing variation in the shape of the intended distributions for hitters. 
+
+    To this end, we fit the following skew-normal (SK) multilevel model:
+
+    \begin{align}
+    \begin{split}
+        ( \mbox{swing length} )_i &\sim \mbox{SK}(\mu_i, \sigma, \alpha_i) \\
+        \mu_i &= \mu_0 + \gamma_{p_i} + \gamma_{b_i}
+        + \beta^B \cdot (\mbox{balls})_i
+          + (\beta^S + \gamma^S_{b_i}) \cdot (\mbox{strikes})_i\\
+        & + (\beta^X + \gamma^X_{b_i}) \cdot (\mbox{pitch loc x})_i
+          + (\beta^Z + \gamma^Z_{b_i}) \cdot (\mbox{pitch loc z})_i \\
+          \alpha_i &= \alpha_0 + \nu_{b_i}
+    \end{split}
+    \end{align}
+    where $b_i$ denotes the batter on swing $i$ against pitcher $p_i$. We use the same specification for both swing length and bat speed intention models. 
+    
+    In detail, the $\gamma$ parameters are random intercepts and random slopes describing the mean of the swing distribution such that,
+
+    \begin{align}
+        \begin{split}
+            \gamma_{p_i} &\sim \mathcal{N}(0, \tau^2_p) \\
+            \boldsymbol{\gamma}_{b_i} &\sim \mathcal{N}(\boldsymbol{0}, \Sigma)
+        \end{split}
+    \end{align}
+    where $\boldsymbol{\gamma}_{b_i}$ is the vector of batter random intercept and slopes $(\gamma_{b_i}, \gamma^S_{b_i}, \gamma^X_{b_i}, \gamma^Z_{b_i})$ which follow a multivariate normal distribution centered around the zero vector $\boldsymbol{0}$ with covariance matrix $\Sigma$. This allows us to quantify variation between hitters and pitchers at the intercept level, as well as capture variation in batter approach and swing adaptation.
+    
+    The $\nu_{b_i}$ parameters are random intercepts enabling us to capture variation between batters in the shape $\alpha$ of the swing length and bat speed distributions, where
+    \begin{equation}
+        \nu_{b_i} \sim \mathcal{N}(0, \sigma^2_p).
+    \end{equation}
+
+    These models tell us: What are the bat speed and swing length (by batter, count and pitch location) when the timing is good? We interpret the prediction from this model on each pitch as the intended bat speed and swing length.
+    
+    We fit both bat speed and swing length models in a Bayesian framework via the brms package in R \citep{brms}, which provides an interface for Bayesian modeling with Stan \citep{carpenter2017stan}. We use weakly informative priors for the parameters, with vague half-$t_3$ priors (i.e., a Student's $t$ distribution centered at zero with 3 degrees of freedom but truncated to positive values) for the standard deviation parameters \citep{gelman2006prior} and the LKJ prior for the correlations between batter-level effects \cite{lewandowski2009generating}. Our Bayesian approach naturally provides uncertainty quantification for the model parameters via their posterior distributions, which are estimated using MCMC sampling. For model fitting, we use four parallel chains, each with 4,000 iterations and 2,000 burn-in samples. We observe good evidence of convergence of the MCMC algorithm with trace plots and observing $\hat{R}$ statistics being close to 1 \citep{gelman1992inference, brooks1998general}, along with no indication of problematic effective sample sizes \citep{gelman2020bayesian}. 
+    
+    For comparison, we also fit we evaluated the skew Normal fit with simpler Gaussian fit that does not include varying intercepts controlling the skewness of the intended swing length and bat speed distributions. We use an 80/20 split to evaluate the two approaches out-of-sample. We compute the ELPD [INSERT CITATION] and ultimately observe that the skew Normal is a better fit for both bat speed and swing length. (Maybe put this conclusion in the results?)
+
+
+
 
     \subsection{Causal Model}
     \label{sec:methods-causal}

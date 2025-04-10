@@ -99,6 +99,9 @@
     \subsection{Causal Model}
     \label{sec:methods-causal}
 
+    \subsection{Run Value Model}
+    \label{sec:methods-value}
+
   \section{Results}
   \label{sec:results}
 
@@ -115,6 +118,23 @@
     \subsection{Causal Model}
     \label{sec:results-causal}
 
+      The previous section demonstrates that there are differences between batters in how they modulate their swing length and bat speed as the number of strikes in the count increases. This section addresses the consequences of those differences between batters. As described in Section \ref{sec:methods-causal}, we estimate three separate regression models with instrumental variables for contact probability given swing (\ref{eqn:causal-model-contact}), fair ball probability given contact (\ref{eqn:causal-model-fair}) and expected xwOBAcon given fair ball (\ref{eqn:causal-model-hit}). The estimated effects of bat speed appraoch and swing length approach from these models are reported in Table \ref{tab:causal-model}.
+
+      \begin{table}
+        \centering
+        \begin{tabular}{l|r|r|r|}
+          & Contact Model (\ref{eqn:causal-contact}) & Fair/Foul Model (\ref{eqn:causal-fair}) & xwOBAcon Model (\ref{eqn:causal-hit})\\
+          \hline
+          \input{../../tables/causal_model.tex}
+        \end{tabular}
+        \caption{\it Estimated regression coefficients and corresponding standard errors from the causal models (\ref{eqn:causal-contact})--(\ref{eqn:causal-hit}). Bat Speed Approach is defined as the batter's change in bat speed per strike added to the count, as estimated by (\ref{eqn:intention-bat-speed}). Swing Length Approach is defined analogously as the batter's change in swing length per strike added to the count, as estimated by (\ref{eqn:intention-swing-length}).}
+        \label{tab:causal-model}
+      \end{table}
+
+      From the contact model, the negative coefficient $-0.177$ for bat speed approach shows that batters who reduce their bat speed more per strike (i.e. more negative bat speed approach) make contact more often in 1-strike and 2-strike counts. Similarly, the negative coefficient for swing length approach shows that batters who reduce their swing length more per strike make contact more often in these counts. These results match our intuition from baseball domain knowledge: More conservative swings are more likely to make contact, a more plausible conclusion than the counterintuitive results from the naive analysis shown in Figure \ref{fig:counterintuitive}. Bat speed approach and swing length approach have similar between-batter variance, so in comparing the coefficients we observed that bat speed approach has a much greater effect (more than 3x) on contact than does swing length approach. The fair ball probability model shows a similar effect direction for bat speed approach and no effect for swing length approach.
+
+      From the xwOBAcon model (i.e. the ``power'' model), the positive coefficient $0.023$ for bat speed approach shows that batters who reduce their bat speed more per strike (i.e. more negative bat speed approach) exhibit less power in 1-strike and 2-strike counts when they do make contact. This demonstrates evidence for the intuitive tradeoff involved when taking more conservative swings when facing more strikes: greater contact but less power. Swing length approach does not seem to have an effect on power.
+
       \begin{figure}
         \centering
         \includegraphics[width = 0.49\textwidth]{../../figures/bat_speed_contact.pdf}
@@ -123,12 +143,35 @@
         \label{fig:results-causal}
       \end{figure}
 
+      The magnitudes of the coefficients in Table \ref{tab:causal-model} are difficult to interpret because two of the models are logistic regressions, so the coefficients represent additive effects in the log-odds scale. For example, a pitch with almost 0\% contact probability will still have almost 0\% contact probability, regardless of approach. The effect of approach on contact is maximized for pitches near 50\% contact probability. Figure \ref{fig:approach} conveys the average effect size across all 2-strike pitches. We observe that the approach effects for almost all batters (relative to an average approach) are within $\pm4\%$ contact probability and $\pm.040$ xwOBA, i.e. $\pm 40$ points of xwOBA.
+
+    \subsection{Run Value Model}
+    \label{sec:results-value}
+
+      The previous section demonstrates that there is a contact/power tradeoff involved when batters modulate their swing length and bat speed as the number of strikes in the count increases. This section addresses whether the tradeoff is worthwhile. As described in Section \ref{sec:methods-value}, we estimate the expected linear weight of plate appearance outcomes for the average batter if they were to adopt different approaches. Figure \ref{fig:approach-run-value} plots batter approaches (as previously plotted in Figure \ref{fig:approach}) now with a color gradient in the background showing the estimated run value of each approach.
+
       \begin{figure}
         \centering
         \includegraphics[width = 0.8\textwidth]{../../figures/approach_run_value.pdf}
         \caption{\it Estimated causal effect of batters' approaches, measured on the scale of runs per 500 plate appearances (PA). This figure shows the same data as Figure \ref{fig:approach} except that the background gradient reports the estimated run value of each approach. If an approach is valued at z runs, the interpretation is that the average batter with this approach is expected to produce z runs more than if they adopted an average approach, as measured by linear weights.}
         \label{fig:approach-run-value}
       \end{figure}
+
+      The magnitude of the difference between the higest-value approaches and the lowest-value approaches is small, approximately 4 runs per 500 plate appearances. To put this in context, it amounts to a difference of roughly half a win per season[CITATION]. Baseball teams are chasing increasingly small competitive advantages[CITATION], and the cost of half a win is roughly \$5 million in the free agent market[CITATION]. We observe that the highest-value approaches are those which cut down on swing length without cutting down on bat speed. From Table \ref{tab:causal-model}, we can see that this is a way to avoid the contact/power tradeoff because cutting down on swing length (all else equal) increases contact without decreasing power.
+
+      \begin{table}
+        \centering
+        \begin{tabular}{rl|rr|r}
+          &        & \multicolumn{2}{c|}{Approach}          & Runs /\\
+          & Batter & Bat Speed (mph)  & Swing Length (in.)  & 500 PA\\
+          \hline
+          \input{../../tables/approach_ranked.tex}
+        \end{tabular}
+        \caption{\it Top 5 and bottom 5 approaches, ranked by runs per 500 plate appearances (PA). Bat Speed Approach and Swing Length Approach are the batter's change in bat speed and swing length, respectively, per strike added to the count. We estimate the effect that each approach would have on the average batter's performance, as measured on the run scale via linear weights.}
+        \label{tab:approach-ranked}
+      \end{table}
+
+      Table \ref{tab:approach-ranked} reports the specific approaches and corresponding run values of the top 5 and bottom 5 batters, ranked according to the run value of their approaches {\it applied to an average batter}. Interestingly, three of the top four batters (Chapman, Olson and Canha) all spent the first five or more seasons of their MLB careers with the Oakland Athletics. At the other end of the table, Rizzo and Turner are very highly accomplished batters. The spread of overall batter talent is much greater than the small spread explained by approach.
 
     \subsection{Other Sources of Swing Variation}
     \label{sec:results-other}
@@ -142,6 +185,15 @@
 
   \section{Discussion}
   \label{sec:discussion}
+
+    \subsection{Future Work}
+    \label{sec:future-work}
+
+      \begin{itemize}
+        \item batter-specific approach values (as opposed to applying approach to average batter)
+        \item valuing tradeoffs considering base-out situation (e.g. runner on third, less than two outs)
+        \item future data coming down the pipeline from MLBAM
+      \end{itemize}
 
   \bibliography{../swingfastslow}
 

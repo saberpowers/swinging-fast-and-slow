@@ -184,19 +184,23 @@ approach_interpreted <- approach |>
 
 display_coef <- function(fit, scale) {
   paste0(
-    sprintf("%.3f", scale * summary(fit)$coefficients[, "Estimate"]),
-    " $\\pm$",
-    sprintf("%.3f", scale * summary(fit)$coefficients[, "Std. Error"])
+    "$",
+    sprintf("%.3f", scale * summary(fit)$coefficients[-1, "Estimate"]),
+    " \\pm",
+    sprintf("%.3f", scale * summary(fit)$coefficients[-1, "Std. Error"]),
+    "$"
   )
 }
 
 tibble::tibble(
+  rowname = c("Bat Speed Approach (mph)", "Swing Length Approach (inches)"),
   # Scale swing length effect by 1/12 to reflect inches rather than feet
-  contact = display_coef(causal_model$fit_contact, scale = c(1, 1, 1 / 12)),
-  fair = display_coef(causal_model$fit_fair, scale = c(1, 1, 1 / 12)),
-  hit = display_coef(causal_model$fit_hit, scale = c(1, 1, 1 / 12))
+  contact = display_coef(causal_model$fit_contact, scale = c(1, 1 / 12)),
+  fair = display_coef(causal_model$fit_fair, scale = c(1, 1 / 12)),
+  hit = display_coef(causal_model$fit_hit, scale = c(1, 1 / 12))
 ) |>
-  sputil::write_latex_table("tables/causal_model.tex")
+  tibble::column_to_rownames() |>
+  sputil::write_latex_table("tables/causal_model.tex", include.rownames = TRUE)
 
 data_with_approach <- data |>
   dplyr::filter(strikes == 2) |>
@@ -253,6 +257,7 @@ width <- 4
       y = "Contact Effect in 2-Strike Counts"
     ) +
     ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-4%", "0%", "+4%")) +
+    ggplot2::coord_cartesian(ylim = c(-.07, .07)) +
     sputil::theme_sleek(mode = fig_mode)
   print(bat_speed_contact_plot)
   dev.off()
@@ -273,38 +278,11 @@ width <- 4
       y = "xwOBA Effect in 2-Strike Counts"
     ) +
     ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-.040", ".000", "+.040")) +
+    ggplot2::coord_cartesian(ylim = c(-.07, .07)) +
     sputil::theme_sleek(mode = fig_mode)
   print(bat_speed_contact_plot)
   dev.off()
 }
-
-batter_approach_effect <- approach_effect_summary |>
-  dplyr::mutate(player_id = as.integer(substring(batter_side_id, 1, 6))) |>
-  dplyr::left_join(player, by = "player_id") |>
-  dplyr::filter(!is.na(strikes_swing_length)) |>
-  dplyr::arrange(-prob_contact_diff) |>
-  dplyr::mutate(rank = 1:dplyr::n()) |>
-  dplyr::select(
-    rank, name_full, strikes_swing_length, strikes_bat_speed, prob_contact_diff, pred_hit_diff
-  )
-  
-batter_approach_effect_top <- batter_approach_effect |>
-  dplyr::slice(1:5)
-
-batter_approach_effect_bot <- batter_approach_effect |>
-  dplyr::slice(dplyr::n() - 4:0)
-
-batter_approach_effect_buffer <- batter_approach_effect |>
-  dplyr::slice(1) |>
-  dplyr::mutate(dplyr::across(dplyr::everything(), function(x) {NA})) |>
-  dplyr::mutate(name_full = "...")
-
-dplyr::bind_rows(
-  batter_approach_effect_top,
-  batter_approach_effect_buffer,
-  batter_approach_effect_bot
-) |>
-  sputil::write_latex_table("tables/batter_approach_effect.tex")
 
 # Caculate the run value of different approaches
 
@@ -322,7 +300,7 @@ approach_value_list <- pbapply::pblapply(
   FUN = swingfastslow::evaluate_approach,
   pred_outcome_pitch = data,
   causal_model = causal_model,
-  linear_weight = linear_weight
+  linear_weight = linear_weight,
 )
 approach_value <- do.call(dplyr::bind_rows, approach_value_list) |>
   dplyr::ungroup() |>
@@ -387,6 +365,21 @@ approach_grid_with_pred <- approach_grid |>
   print(plot)
   dev.off()
 }
+
+approach_interpreted |>
+  dplyr::mutate(player_id = as.integer(substring(batter_side_id, 1, 6))) |>
+  dplyr::left_join(player, by = "player_id") |>
+  dplyr::mutate(runs = predict(approach_runs_model, newdata = approach_interpreted)) |>
+  dplyr::arrange(-runs) |>
+  dplyr::mutate(rank = 1:dplyr::n()) |>
+  dplyr::select(rank, name_full, strikes_bat_speed, strikes_swing_length, runs) |>
+  dplyr::slice(c(1:5), dplyr::n() - 4:0) |>
+  dplyr::mutate(
+    strikes_bat_speed = glue::glue("${sprintf('%.2f', strikes_bat_speed)}$"),
+    strikes_swing_length = glue::glue("${sprintf('%.2f', strikes_swing_length)}$"),
+    runs = glue::glue("${sprintf('%.2f', runs)}$"),
+  ) |>
+  sputil::write_latex_table("tables/approach_ranked.tex", buffer_row = 6)
 
 
 # 4.3 Other Sources of Swing Variation ----

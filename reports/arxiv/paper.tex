@@ -4,12 +4,11 @@
 \usepackage[margin=1in]{geometry}
 \linespread{1.2}
 
-\usepackage{graphicx}
-\usepackage{amsfonts}
-\usepackage{amsmath}
-\usepackage{authblk}
-\usepackage{natbib}
-\bibliographystyle{../apa-good}
+\usepackage{amsfonts, amsmath, authblk, graphicx, natbib}
+
+% This nastiness for the bibliography to work both locally and on Overleaf
+% https://tex.stackexchange.com/questions/623701/path-for-bib-file-working-simultaneously-in-texstudio-and-overleaf
+\bibliographystyle{\ifnum\pdfstrcmp{\jobname}{output}=0 reports/apa-good\else ../apa-good\fi}
 
 \title{Swinging, Fast and Slow:\\Interpreting variation in baseball swing tracking metrics}
 \author[1]{Scott Powers}
@@ -195,6 +194,8 @@
         \item future data coming down the pipeline from MLBAM
       \end{itemize}
 
-  \bibliography{../swingfastslow}
+  % This nastiness for the bibliography to work both locally and on Overleaf
+  % https://tex.stackexchange.com/questions/623701/path-for-bib-file-working-simultaneously-in-texstudio-and-overleaf
+  \bibliography{\ifnum\pdfstrcmp{\jobname}{output}=0 reports/swingfastslow\else ../swingfastslow\fi}
 
 \end{document}

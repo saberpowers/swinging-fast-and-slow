@@ -300,7 +300,7 @@ approach_value_list <- pbapply::pblapply(
   FUN = swingfastslow::evaluate_approach,
   pred_outcome_pitch = data,
   causal_model = causal_model,
-  linear_weight = linear_weight,
+  linear_weight = linear_weight
 )
 approach_value <- do.call(dplyr::bind_rows, approach_value_list) |>
   dplyr::ungroup() |>

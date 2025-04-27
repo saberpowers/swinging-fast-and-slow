@@ -16,8 +16,8 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports:
   dplyr,
-  lme4,
   stringr
 Suggests:
   predpitchscore,
-  sabRmetrics
+  sabRmetrics,
+  xgboost

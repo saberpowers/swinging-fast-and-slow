@@ -12,13 +12,8 @@
 #'   `predpitchscore::train_hit_outcome_model`
 #' 
 #' @returns a dataframe with the same rows and columns as `data`, with the following columns added:
-#' \itemize{
-#'   \item{"fit_bat_speed"}{a fitted lme4 model for intended bat speed}
-#'   \item{"fit_swing_length"}{a fitted lme4 model for intended swing length}
-#'   \item{"approach"}{a dataframe summarizing estimated batter approach}
-#'   \item{"adaptation"}{a dataframe summarizing estimated batter adaptation}
-#'   \item{"timing"}{a dataframe summarizing estimated batter timing}
-#' }
+#'   prob_swing, prob_hbp, prob_strike, prob_contact, prob_fair, pred_hit,
+#'   pitch_value_swing, pitch_value_take, pitch_value hit_pred
 #'
 #' @references https://github.com/saberpowers/predictive-pitch-score
 #' 

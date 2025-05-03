@@ -33,7 +33,7 @@ intent_swing_data <- full_swing_data |>
 # Read in the models ------------------------------------------------------
 
 intent_swing_length_brms <- 
-  read_rds("sandbox/ryurko/models/intent_swing_length_full.rds")
+  read_rds("sandbox/ryurko/models/intent_swing_length_full_box.rds")
 intent_bat_speed_brms <- 
   read_rds("sandbox/ryurko/models/intent_bat_speed_full.rds")
 

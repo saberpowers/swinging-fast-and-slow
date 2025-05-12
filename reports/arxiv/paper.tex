@@ -27,6 +27,9 @@
   \section{Introduction}
   \label{sec:introduction}
 
+    Baseball has a long history as fertile ground for statistical analysis of rich datasets. For Major League Baseball (MLB), detailed records are publicly available at the play-by-play level going back to 1912 \citep{retrosheet}. Beginning in 2007, MLB made optical pitch tracking data freely available online
+    \citep{fast_what_2010}, enabling unprecedented insights into player performance \citep{swartz_quality_2017}. In 2016, MLB made waves again when they updated their ball tracking technology to incorporate Doppler radar and released batted ball tracking data to the public \citep{arthur_new_2016}. Most recently, in May 2024, MLB released their most exciting new dataset since batted ball tracking 2016: bat tracking at the pitch-by-pitch level \citep{petriello_everything_2024}.
+
     \begin{figure}
       \centering
       \includegraphics[width = 0.8\textwidth]{../../figures/counterintuitive.pdf}
@@ -45,8 +48,50 @@
     \subsection{Related Work}
     \label{sec:related-work}
 
+      \begin{itemize}
+        \item Bat tracking
+        \begin{itemize}
+          \item \citet{nevins_sensitivity_2019}
+          \item \citet{orishimo_lower_2024}
+          \item \citet{nakashima_acceptable_2025}
+        \end{itemize}
+        \item Bat tracking (blogs)
+        % Candidates
+        % https://blogs.fangraphs.com/what-statcasts-new-bat-tracking-data-does-and-doesnt-tell-us/
+        % https://blogs.fangraphs.com/daddy-hacks-or-the-lone-peril-of-swinging-too-hard/
+        % https://www.baseballprospectus.com/news/article/95688/best-of-bp-in-defense-of-isaac-paredes/
+        % https://www.drivelinebaseball.com/2024/07/using-mlb-bat-tracking-data-to-better-understand-swings/
+        % https://theadvancescout.substack.com/p/whats-in-a-swing-a-metrics-explainer
+        % https://theadvancescout.substack.com/p/the-radar-gun-doesnt-work-here
+        % https://theadvancescout.substack.com/p/the-cheat-swing
+        \begin{itemize}
+            \item 
+        \end{itemize}
+        \item Skew normal
+        \begin{itemize}
+          \item \citet{judge_exit_2024}
+        \end{itemize}
+        \item Instrumental variable regression
+        \begin{itemize}
+          \item \citet{putman_tackling_2025}
+        \end{itemize}
+      \end{itemize}
+
   \section{Data}
   \label{sec:data}
+
+    Our dataset comprises 685,143 pitches thrown during the 2024 MLB regular season. This publicly available dataset was downloaded from Baseball Savant \citep{baseball_savant} using the R package sabRmetrics \citep{sabRmetrics}. For each pitch, we observe the identities and handedness (left/right) of the batter and pitcher involved and the ball-strike count prior to the pitch. We also observe pitch tracking information, most notably the pitch type (e.g. fastball, curveball, changeup) and the $(x, z)$ location where the pitch crosses the front of home plate. The pitch tracking information is sufficient to recreate an estimate of the pitch's full trajectory as a three-dimensional quadratic function of time $(x(t), y(t), z(t))$ and to recreate the corresponding pitch metrics such as release point, release speed, and vertical/horizontal break. Each pitch has a categorical outcome, which can be one of: hit by pitch, called ball, called strike, swinging strike, foul ball, or hit into play.
+
+    For pitches on which the batter swings, we observe bat tracking information describing the bat speed and the swing length (detailed in Section \ref{sec:measurement}). For pitches that are hit into play, we observe the initial exit speed and vertical exit angle (relative to the ground) of the ball as it leaves the bat. We also observe each fair batted ball's manually charted hit coordinates (on the field), which serves as a proxy for the horizontal exit angle of the ball off the bat.
+
+    \subsection{Bat Speed and Swing Length Measurement}
+    \label{sec:measurement}
+
+      Bat tracking metrics were made possible by improvements to MLB's Hawk-Eye Statcast system in 2023 which featured five high frame rate (300 frames per second) cameras dedicated to tracking movements of the pitcher and the batter \citep{goldbeck_introducing_2023}. Through computer vision, this system tracks not only player center of mass but full limb orientation (including the bat) throughout the pitching and batting movements, generating a rich kinematic time series of data on each pitch.
+
+      The raw kinematic time series data are not publicly available, but MLB has begun to release some metrics derived from them, starting with bat speed and swing length on every pitch. Bat speed is defined as the linear speed of the ``sweet spot'' of the bat (roughly six inches from the end) at the point of contact with the ball, and swing length is defined as the distance travelled by the end of the bat from the start of the swing until the point of contact \citep{petriello_everything_2024}. In the event of a swing and miss, both metrics are measured at the point nearest to contact. These metrics represent a tiny fraction of the kinematic time series data, and the process by which they are measured complicates their interpretation on a swing-by-swing basis.
+
+    \subsection{Data Cleaning}
 
   \section{Methods}
   \label{sec:methods}
@@ -59,6 +104,7 @@
     To this end, we fit the following skew-normal (SK) multilevel model:
 
     \begin{align}
+    \label{eqn:intention-swing-length}
     \begin{split}
         ( \mbox{swing length} )_i &\sim \mbox{SK}(\mu_i, \sigma, \alpha_i) \\
         \mu_i &= \mu_0 + \gamma_{p_i} + \gamma_{b_i}
@@ -75,37 +121,130 @@
 
     \begin{align}
         \begin{split}
-            \gamma_{p_i} &\sim \mathcal{N}(0, \tau^2_p) \\
+            \gamma_{p_i} &\sim \mathcal{N}(0, \sigma^2_p) \\
             \boldsymbol{\gamma}_{b_i} &\sim \mathcal{N}(\boldsymbol{0}, \Sigma)
         \end{split}
     \end{align}
-    where $\boldsymbol{\gamma}_{b_i}$ is the vector of batter random intercept and slopes $(\gamma_{b_i}, \gamma^S_{b_i}, \gamma^X_{b_i}, \gamma^Z_{b_i})$ which follow a multivariate normal distribution centered around the zero vector $\boldsymbol{0}$ with covariance matrix $\Sigma$. This allows us to quantify variation between hitters and pitchers at the intercept level, as well as capture variation in batter approach and swing adaptation.
+    where $\boldsymbol{\gamma}_{b_i}$ is the vector of batter random intercept and slopes $(\gamma_{b_i}, \gamma^S_{b_i}, \gamma^X_{b_i}, \gamma^Z_{b_i})$ which follow a multivariate normal distribution centered around the zero vector $\boldsymbol{0}$ with covariance matrix $\Sigma$. This $\Sigma$ contains the relevant random effect variances for the batter-level terms, $(\sigma_b, \sigma_b^S, \sigma_b^X, \sigma_b^Z)$, as well as their respective correlations. This allows us to quantify variation between hitters and pitchers at the intercept level, as well as capture variation in batter approach and swing adaptation.
     
     The $\nu_{b_i}$ parameters are random intercepts enabling us to capture variation between batters in the shape $\alpha$ of the swing length and bat speed distributions, where
     \begin{equation}
-        \nu_{b_i} \sim \mathcal{N}(0, \sigma^2_p).
+        \nu_{b_i} \sim \mathcal{N}(0, \tau^2_b).
     \end{equation}
 
     These models tell us: What are the bat speed and swing length (by batter, count and pitch location) when the timing is good? We interpret the prediction from this model on each pitch as the intended bat speed and swing length.
     
-    We fit both bat speed and swing length models in a Bayesian framework via the brms package in R \citep{brms}, which provides an interface for Bayesian modeling with Stan \citep{carpenter2017stan}. We use weakly informative priors for the parameters, with vague half-$t_3$ priors (i.e., a Student's $t$ distribution centered at zero with 3 degrees of freedom but truncated to positive values) for the standard deviation parameters \citep{gelman2006prior} and the LKJ prior for the correlations between batter-level effects \cite{lewandowski2009generating}. Our Bayesian approach naturally provides uncertainty quantification for the model parameters via their posterior distributions, which are estimated using MCMC sampling. For model fitting, we use four parallel chains, each with 4,000 iterations and 2,000 burn-in samples. We observe good evidence of convergence of the MCMC algorithm with trace plots and observing $\hat{R}$ statistics being close to 1 \citep{gelman1992inference, brooks1998general}, along with no indication of problematic effective sample sizes \citep{gelman2020bayesian}. 
+    We fit both bat speed and swing length models in a Bayesian framework via the brms package in R \citep{brms}, which provides an interface for Bayesian modeling with Stan \citep{carpenter2017stan}. We use weakly informative priors for the parameters, with vague half-$t_3$ priors (i.e., a Student's $t$ distribution centered at zero with 3 degrees of freedom but truncated to positive values) for the standard deviation parameters \citep{gelman2006prior} and the LKJ prior for the correlations between batter-level effects \cite{lewandowski2009generating}. Our Bayesian approach naturally provides uncertainty quantification for the model parameters via their posterior distributions, which are estimated using MCMC sampling. For model fitting, we use four parallel chains with 6,000 (3,000 burn-in) and 4,000 (2,000 burn-in) samples for the swing length and bat speed models respectively. We observe evidence of convergence of the MCMC algorithm based on observing trace plots and $\hat{R}$ statistics close to 1 \citep{gelman1992inference, brooks1998general}, along with no indication of problematic effective sample sizes \citep{gelman2020bayesian}. 
     
-    For comparison, we also fit we evaluated the skew Normal fit with simpler Gaussian fit that does not include varying intercepts controlling the skewness of the intended swing length and bat speed distributions. We use an 80/20 split to evaluate the two approaches out-of-sample. We compute the ELPD [INSERT CITATION] and ultimately observe that the skew Normal is a better fit for both bat speed and swing length. (Maybe put this conclusion in the results?)
-
-
-
+    For comparison, we also fit simpler Gaussian versions of the swing length and bat speed models. These models follow a specification similar to that of the SK models in Equation \ref{eqn:intention-swing-length}, but with the shape parameter removed (i.e., the Guassian distribution is a SK with shape equal to 0). We use an 80/20 train/test split to compare the out-of-sample performance of the SK and Gaussian fits against each other. We compute the expected log pointwise predictive density (ELPD) on the 20\% test data, which involves computing the log-likelihood of each test observation for each posterior sample. In addition to providing us with standard errors about the difference in model performance, we choose ELPD as our evaluation metric because of our interest in comparing the skewness of the SK posterior predictive distributions relative to the symmetric Gaussian.
 
     \subsection{Causal Model}
     \label{sec:methods-causal}
 
+      The intention model from Section \ref{sec:methods-intention} sets us up to estimate a causal model for the effect of bat speed and swing length on swing outcomes via instrumental variables regression (CITATION). Relying on baseball domain knowledge, we hypothesize that the relationship between swing tracking metrics and outcomes is confounded by a latent, unobserved variable: whether the batter correctly identifies the pitch type early in its trajectory (by lucky guess or by other means) or needs to make a mid-swing adjustment. When the batter fails to correctly identify the pitch type early, he is less likely to make good contact, and he also adjusts his swing, reducing the bat speed and affecting the swing length. Critically, this confounder can vary significantly from pitch to pitch as batters frequently limit their focus to one or two pitch types because it is too difficult to prepare for any pitch type (CITATION).
+
+      A good instrumental variable is one which has an effect on the treatment (in this case, swing tracking metrics) and is known to be uncorrelated with the confounder (CITATION). As the instrument varies, we observe the effect of the treatment with the effect of the confounder stripped away. Relying on the framework from Section \ref{sec:methods-intention}, we choose the batter's count-intended bat speed and swing length as our instrumental variables. Count-intended swing length is the player specific contribution of count to swing length, as estimated by (\ref{eqn:intention-swing-length}), and count-intended swing length is defined analogously.
+
+      Count-intended swing metrics affect observed swing metrics as modeled in Section \ref{sec:methods-intention}, and we expect that they are approximately uncorrelated with early pitch recognition. The count is known before the pitch and does not depend on the pitch itself. This may not be a perfect instruction, for example, if batters who tend to struggle more with early pitch recognition in two-strike counts tend also to modify their two-strike swing intentions a certain way. But this choice of instrumental variables will mitigate any confounding effect of early pitch recognition from pitch to pitch.
+
+      We consider the effect of bat speed and swing length on three components of the pitch outcome model: probability of contact conditioned on swing; probability of fair ball conditioned on contact; and expected xwOBA conditioned on fair ball. For each of these components, we estimate a logistic or linear regression of the outcome on the batter's count-intended bat speed and swing length, with an offset for the prediction from the pitch outcome model described in Section \ref{sec:methods-pitch-outcome-model}. This offset controls for the difficulty of each pitch when estimating the effects of count-based bat speed and swing length adjustments.
+
+      Using $i \in \{1, ..., n\}$ to index swings, the random variables $Y_i^{\mbox{\scriptsize con}} \in \{0, 1\}$, $Y_i^{\mbox{\scriptsize fair}} \in \{0, 1\}$ and $Y_i^{\mbox{\scriptsize xwOBA}} \in \mathbb{R}$ represent whether swing $i$ results in contact; whether swing $i$ results in a fair ball; and the xwOBA of the batter ball on swing $i$ (undefined if $Y_i^{\mbox{\scriptsize fair}} \in \{0, 1\} = 0$), respectively. The corresponding predictions from the pitch outcome model are denoted by $\hat p_i^{\mbox{\scriptsize con}} \in (0, 1)$,  $\hat p_i^{\mbox{\scriptsize fair}} \in (0, 1)$ and $\hat y_i^{\mbox{\scriptsize xwOBA}} \in \mathbb{R}$. We use $b_i$ to denote the batter on swing $i$, and $\hat\gamma_{b_i}^{\mbox{\scriptsize BS}}$ and $\hat\gamma_{b_i}^{\mbox{\scriptsize SL}}$ are the estimated batter random slopes for strikes in the bat speed intention model and the swing length intention model, respectively.
+
+      \begin{align}
+        \label{eqn:causal-contact}
+        \log \left(
+          \frac{\mathbb{P}(Y_i^{\mbox{\scriptsize con}} = 1)}{1 - \mathbb{P}(Y_i^{\mbox{\scriptsize con}} = 1)}
+        \right) &= \log \left(
+          \frac{\hat p_i^{\mbox{\scriptsize con}}}{1 - \hat p_i^{\mbox{\scriptsize con}}}
+        \right) +
+          \alpha^{\mbox{\scriptsize con}} +
+          \beta_{\mbox{\scriptsize BS}}^{\mbox{\scriptsize con}} \cdot
+            \hat\gamma_{b_i}^{\mbox{\scriptsize BS}} +
+          \beta_{\mbox{\scriptsize SL}}^{\mbox{\scriptsize con}} \cdot
+            \hat\gamma_{b_i}^{\mbox{\scriptsize SL}},\\[10pt]
+        \label{eqn:causal-fair}
+        \log \left(
+          \frac{
+            \mathbb{P}(Y_i^{\mbox{\scriptsize fair}} = 1 \mid Y_i^{\mbox{\scriptsize con}} = 1)
+          }{
+            1 - \mathbb{P}(Y_i^{\mbox{\scriptsize fair}} = 1 \mid Y_i^{\mbox{\scriptsize con}} = 1)
+          }
+        \right) &= \log \left(
+          \frac{\hat p_i^{\mbox{\scriptsize fair}}}{1 - \hat p_i^{\mbox{\scriptsize fair}}}
+        \right) +
+          \alpha^{\mbox{\scriptsize fair}} +
+          \beta_{\mbox{\scriptsize BS}}^{\mbox{\scriptsize fair}} \cdot
+            \hat\gamma_{b_i}^{\mbox{\scriptsize BS}} +
+          \beta_{\mbox{\scriptsize SL}}^{\mbox{\scriptsize fair}} \cdot
+            \hat\gamma_{b_i}^{\mbox{\scriptsize SL}},\\[10pt]
+        \label{eqn:causal-hit}
+        Y_i^{\mbox{\scriptsize xwOBA}} \mid \{Y_i^{\mbox{\scriptsize fair}} = 1\} &\sim
+          \mbox{Normal}\left(
+            \hat y_i^{\mbox{\scriptsize xwOBA}} +
+              \alpha^{\mbox{\scriptsize xwOBA}} +
+              \beta_{\mbox{\scriptsize BS}}^{\mbox{\scriptsize xwOBA}} \cdot
+                \hat\gamma_{b_i}^{\mbox{\scriptsize BS}} +
+              \beta_{\mbox{\scriptsize SL}}^{\mbox{\scriptsize xwOBA}} \cdot
+                \hat\gamma_{b_i}^{\mbox{\scriptsize SL}},
+            \sigma^2
+          \right).
+      \end{align}
+
+      In each of these models, we interpret $\alpha^\cdot$ as an intercept to account for the fact that the mean outcome may not be the same in this dataset as in the dataset on which the pitch outcome model was trained. We interpret $\beta_{\mbox{\scriptsize BS}}^{\cdot}$ and $\beta_{\mbox{\scriptsize SL}}^{\cdot}$ as the effects of bat speed and swing length adjusments on the outcomes. The parameter $\sigma^2$ in the xwOBA model is a nuisance parameter.
+
     \subsection{Run Value Model}
     \label{sec:methods-value}
 
+      The models from Section \ref{sec:methods-causal} estimate the effect of swing adjustments on contact and power, but they don't dhelp us make value judgments when these effects move in opposite directions, e.g. sacrificing power for increased contact. In baseball, the units of value are runs, which translate directly to wins (CITATION). The standard metric for estimating the run value of batting performance is linear weight, which assigns a run value to each type of batter outcome (strikeout, walk, home run, etc.) according to its average change in base-out run expectancy (CITATION). In this section, we describe a method for converting the effects on contact and power into effects on linear weight.
+
   \section{Results}
   \label{sec:results}
+  
 
     \subsection{Intention Model}
     \label{sec:results-intention}
+
+    The out-of-sample ELPD results are shown in Table \ref{tab:intention-model-elpd} for both swing length and bat speed models. For both settings, the SK model displayed an ELPD of around 3 standard errors better than the Gaussian model. The remaining results in this manuscript are based on the SK intention models.
+
+\begin{table}
+        \centering
+        \begin{tabular}{l|r|r|r|}
+          & $\Delta$ELPD  & SE & \# SEs \\
+          \hline
+          \input{../../tables/intention_elpd.tex}
+        \end{tabular}
+        \caption{\it Model comparison via expected log predictive density (ELPD). Shown are the difference in EPLD between the skew-normal (SK) and Gaussian models ($\Delta$ELPD), the standard error of ELPD difference (SE), and the number of standards errors the SK model is better than the Gaussian model.}
+        \label{tab:intention-model-elpd}
+      \end{table}
+
+       Table \ref{tab:fixed-effects} summarizes the fixed effects of the bat speed and swing length intention models. We observe intuitive relationships for both models with regards to the relationships between pitch-level context and each observed swing measurement. As the number of balls increase, on average ($\beta^B$) we observe faster and longer swings. The opposite behavior is observed as the number of strikes increases ($\beta^S$), with slower and shorter swings on average. A similar relationship is observed for pitches with higher vertical locations ($\beta^Z$). The two models diverge with regards to the horizontal location of pitches ($\beta^X$), as pitches that thrown further away from the batter result in longer but slower swings on average. With regards to the shape parameter of the SK distribution, the intercepts ($\alpha_0$) for both bat speed and swing length are negative which indicate skewed-left distributions.
+
+      \begin{table}
+        \centering
+        \begin{tabular}{l|rrr|rrr|}
+                  & \multicolumn{3}{c|}{Bat Speed}          & \multicolumn{3}{c|}{Swing Length}  \\
+        Parameter & Mean  & Lower  & Upper & Mean  & Lower  & Upper \\
+          \hline
+          \input{../../tables/fixed_effects.tex}
+        \end{tabular}
+        \caption{\it Posterior mean and 95\% credible interval lower/upper bounds for the fixed effects in the bat speed and swing length intention models.}
+        \label{tab:fixed-effects}
+      \end{table}
+
+      Next, Table \ref{tab:intention-variances} summarizes the posterior distributions of the random effects variance terms. For both bat speed and swing length intention models, we observe the highest variation is attributed to differences between batters ($\sigma_b$). Interestingly, the variation between batters in the shape random effects ($\tau_b$) is the second highest for swing length but is smaller than the pitch location random slopes ($\sigma_b^X$ and $\sigma_b^Z$) for the bat speed model. For each of the estimated terms, all of the 95\% credible intervals are strictly greater than zero demonstrating evidence of variability between batters at the intercept and slope-level.
+       
+      \begin{table}
+        \centering
+        \begin{tabular}{l|rrr|rrr|}
+                  & \multicolumn{3}{c|}{Bat Speed}          & \multicolumn{3}{c|}{Swing Length}  \\
+        Parameter & Mean  & Lower  & Upper & Mean  & Lower  & Upper \\
+          \hline
+          \input{../../tables/variances.tex}
+        \end{tabular}
+        \caption{\it Posterior mean and 95\% credible interval lower/upper bounds for the standard deviation of the random effect terms in the bat speed and swing length intention models.}
+        \label{tab:intention-variances}
+      \end{table}
 
       \begin{figure}
         \centering

@@ -161,7 +161,7 @@ alpha_intent_summary <- bat_speed_alpha_intent_summary |>
              by = c("batter_side_id", "term")) |>
   left_join(batter_table, by = "batter_side_id")
 
-# Visuals for each term (could facet, that would be intense though)
+# Visuals for each term 
 {
   sputil::open_device(paste0("figures/alpha_re", fig_suffix), height = 5, width = 7)
   alpha_intent_plot <- alpha_intent_summary |>
@@ -254,4 +254,50 @@ ggplot(data.frame(x = c(x_lower_val , x_upper_val)),
   labs(x = "Swing length", y = "Density") + 
   sputil::theme_sleek(mode = fig_mode)
 # Ugh - that's not very revealing... going to ditch that figure
+
+
+# Display the leftover variation ------------------------------------------
+
+swing_length_resid <- predictive_error(intent_swing_length_brms, 
+                                       newdata = full_swing_data,
+                                       method = "posterior_epred",
+                                       # Just use the posterior mean
+                                       point_estimate = "mean",
+                                       allow_new_levels = TRUE)
+bat_speed_resid <- predictive_error(intent_bat_speed_brms, 
+                                    newdata = full_swing_data,
+                                    method = "posterior_epred",
+                                    point_estimate = "mean",
+                                    allow_new_levels = TRUE)
+
+# Join the residuals to the full dataset and compute player variance summary:
+player_resid_summary <- full_swing_data |>
+  mutate(bat_speed_intent_resid = as.numeric(bat_speed_resid[1,]),
+         swing_length_intent_resid = as.numeric(swing_length_resid[1,])) |>
+  group_by(batter_side_id, batter_id, batter_name) |>
+  summarize(bat_speed_resid_sd = sd(bat_speed_intent_resid, na.rm = TRUE),
+            swing_length_resid_sd = sd(swing_length_intent_resid, na.rm = TRUE),
+            n_swings = n(),
+            n_squared_up = sum(as.numeric(squared_up), na.rm = TRUE),
+            .groups = "drop")
+  
+# Plot residual variance
+{
+  sputil::open_device(paste0("figures/residual_sd", fig_suffix), height = 5, width = 7)
+  resid_sd_plot <- player_resid_summary |>
+    filter(n_squared_up >= 25) |>
+    ggplot(aes(x = bat_speed_resid_sd, y = swing_length_resid_sd)) +
+    # geom_hline(yintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
+    # geom_vline(xintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
+    geom_text(aes(label = batter_name), size = 2, color = color_blue, alpha = 0.7) +
+    labs(x = "Standard deviation of bat speed residuals",
+         y = "Standard deviation of swing length residuals") +
+    sputil::theme_sleek(mode = fig_mode)
+  print(resid_sd_plot)
+  dev.off()
+  }
+
+
+
+
 

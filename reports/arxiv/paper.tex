@@ -218,7 +218,14 @@
         \label{tab:intention-model-elpd}
       \end{table}
 
-       Table \ref{tab:fixed-effects} summarizes the fixed effects of the bat speed and swing length intention models. We observe intuitive relationships for both models with regards to the relationships between pitch-level context and each observed swing measurement. As the number of balls increase, on average ($\beta^B$) we observe faster and longer swings. The opposite behavior is observed as the number of strikes increases ($\beta^S$), with slower and shorter swings on average. A similar relationship is observed for pitches with higher vertical locations ($\beta^Z$). The two models diverge with regards to the horizontal location of pitches ($\beta^X$), as pitches that thrown further away from the batter result in longer but slower swings on average. With regards to the shape parameter of the SK distribution, the intercepts ($\alpha_0$) for both bat speed and swing length are negative which indicate skewed-left distributions.
+       Table \ref{tab:fixed-effects} summarizes the fixed effects of the bat speed and swing length intention models. We observe intuitive relationships for both models with regards to the relationships between pitch-level context and each observed swing measurement. As the number of balls increase, on average ($\beta^B$) we observe faster and longer swings. The opposite behavior is observed as the number of strikes increases ($\beta^S$), with slower and shorter swings on average. Figure \ref{fig:approach} displays the joint distribution of the posterior mean for the batter random slopes for strikes ($\hat{B}^S + \hat{\gamma}_b^S$) in both intention models, regardless of the individual batter effect we expect a decrease in bat speed and swing length per strike. A similar relationship is observed for pitches with higher vertical locations ($\beta^Z$). The two models diverge with regards to the horizontal location of pitches ($\beta^X$), as pitches that thrown further away from the batter result in longer but slower swings on average. With regards to the shape parameter of the SK distribution, the intercepts ($\alpha_0$) for both bat speed and swing length are negative which indicate left skewed distributions.
+
+      \begin{figure}
+        \centering
+        \includegraphics[width = 0.6\textwidth]{../../figures/approach.pdf}
+        \caption{\it Estimated batter random slopes for strikes in the intention model. Each point is a batter $b$, with the x-value representing $\hat\beta^S + \hat\gamma^S_b$ from the model (\ref{eqn:intention-swing-length}) and the y-value representing the same quantity from the model (\ref{eqn:intention-bat-speed}). This quantity is interpretable as the expected change in swing length (or bat speed) corresponding to a one-strike increase in the ball-strike count.}
+        \label{fig:approach}
+      \end{figure}
 
       \begin{table}
         \centering
@@ -246,13 +253,24 @@
         \label{tab:intention-variances}
       \end{table}
 
+      Figure \ref{fig:intent-re} provides an overview of the batter-level $\mu_i$ random effects in the SK intention models. The variation we observe between batters aligns with intuition, as batters known for taking longer/faster swings (e.g., Oneil Cruz, Giancarlo Stanton, Javier Baez) display higher random intercepts ($\gamma_b$) in compare to batters with shorter/slower swings (e.g., Luis Arraez). We observe positive correlations between the random slopes of bat speed and swing length, providing information on the variation between batters with respect to their approach ($\gamma_b^S$) and adaptation ($\gamma_b^X$, $\gamma_b^Z$). For example, Anthony Rizzo's approach appears to be more conservative with the biggest decrease in bat speed and swing length for each additional strike relative to the average batter slope. We also observe batters that deviate from the consistent pattern between bat speed and swing length, such as Shohei Ohtani with regards to his horizontal pitch location random slope appearing to be higher than average for swing length despite a lower than average value for bat speed. 
+      
       \begin{figure}
         \centering
-        \includegraphics[width = 0.6\textwidth]{../../figures/approach.pdf}
-        \caption{\it Estimated batter random slopes for strikes in the intention model. Each point is a batter $b$, with the x-value representing $\hat\beta^S + \hat\gamma^S_b$ from the model (\ref{eqn:intention-swing-length}) and the y-value representing the same quantity from the model (\ref{eqn:intention-bat-speed}). This quantity is interpretable as the expected change in swing length (or bat speed) corresponding to a one-strike increase in the ball-strike count.}
-        \label{fig:approach}
+        \includegraphics[width = 0.8\textwidth]{../../figures/intent_re.pdf}
+        \caption{\it Joint distribution of the posterior means for the batter-level $\mu_i$ random effects in the SK intention models for both bat speed and swing length. Each batter is displayed by their name, and only batters with at least 25 squared-up swings are displayed.}
+        \label{fig:intent-re}
       \end{figure}
-
+        
+       In contrast, Figure \ref{fig:alpha-re} displays the joint distribution of the posterior means for the batter random intercepts in modeling the shape parameter $\alpha$ of the SK distribution. Unlike the mean-level random effects, we do not observe correlation between the bat speed and swing length shape-level random intercepts. The variation captured by these random intercepts provides some understanding of the differences in the intended swing distribution for players. Luis Arraez displays above average random intercepts for both bat speed and swing length, indicating that his intention distributions are less skewed left than compared to other batters. 
+                
+      \begin{figure}
+        \centering
+        \includegraphics[width = 0.8\textwidth]{../../figures/alpha_re.pdf}
+        \caption{\it Joint distribution of the posterior means for the batter-level $\alpha_i$ random effects in the SK intention models for both bat speed and swing length. Each batter is displayed by their name, and only batters with at least 25 squared-up swings are displayed.}
+        \label{fig:alpha-re}
+      \end{figure}
+      
     \subsection{Causal Model}
     \label{sec:results-causal}
 

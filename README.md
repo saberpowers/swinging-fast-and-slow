@@ -1,6 +1,7 @@
 # Swinging, Fast and Slow: Untangling intention and timing error from bat speed and swing length
 
 Scott Powers and Ron Yurko
+
 2024 Cascadia Symposium on Statistics in Sports
 [slides](https://drive.google.com/file/d/12FuQxjcDzmxETV-RaKdjPA1gbP1BLUaR),
 [video](https://www.youtube.com/watch?v=rsJmNvDaHJc&list=PL40KH8fsrt-sX1lSf659bl1u341F76ue3)

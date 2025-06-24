@@ -36,7 +36,6 @@ devtools::install_github(
 │   ├── cassis
 │   └── saberseminar
 ├── scripts                             # R code for reproducing results
-|   ├── sandbox
 |   ├── download_data.R
 |   ├── estimate_models.R
 |   └── generate_results.R

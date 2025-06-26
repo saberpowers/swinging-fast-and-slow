@@ -2,11 +2,11 @@
 
 Scott Powers and Ron Yurko
 
-2024 Cascadia Symposium on Statistics in Sports
+2024 Cascadia Symposium on Statistics in Sports (Vancouver)
 [slides](https://drive.google.com/file/d/12FuQxjcDzmxETV-RaKdjPA1gbP1BLUaR),
 [video](https://www.youtube.com/watch?v=rsJmNvDaHJc&list=PL40KH8fsrt-sX1lSf659bl1u341F76ue3)
 
-2024 Saberseminar
+2024 Saberseminar (Chicago)
 [slides](https://drive.google.com/file/d/1tmKdebUSCWPXwE2q09yf5HCdInPrOIsZ),
 [video](https://www.youtube.com/watch?v=rQ1BsjQEWKs&list=PL40KH8fsrt-sX1lSf659bl1u341F76ue3)
 

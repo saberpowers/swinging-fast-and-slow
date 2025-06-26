@@ -1,4 +1,4 @@
-# Swinging, Fast and Slow: Untangling intention and timing error from bat speed and swing length
+# Swinging, Fast and Slow: Interpreting variation in baseball swing tracking metrics
 
 Scott Powers and Ron Yurko
 

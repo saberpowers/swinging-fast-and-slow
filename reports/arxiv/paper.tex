@@ -14,14 +14,17 @@
 \usetikzlibrary{decorations.pathmorphing}
 
 \title{Swinging, Fast and Slow:\\Interpreting variation in baseball swing tracking metrics}
-\author[1]{Scott Powers}
-\author[2]{Ronald Yurko}
+\author[1*]{Scott Powers}
+\author[2*]{Ronald Yurko}
 \affil[1]{Department of Sport Management, Rice University}
 \affil[2]{Department of Statistics \& Data Science, Carnegie Mellon University}
+\date{July 1, 2025}
 
 \begin{document}
 
   \maketitle
+
+  \def\thefootnote{*}\footnotetext{Both authors contributed equally to this work.}
 	
   \begin{abstract}
     In 2024, Major League Baseball released new bat tracking data, reporting swing-by-swing bat speed and swing length measured at the point of contact. While exciting, the data present challenges for their interpretation. The timing of the batter's swing relative to the pitch determines the point of measurement relative to the full swing path. The relationship between swing metrics and swing outcomes is confounded by the batter's pitch recognition. We introduce a framework for interpreting bat tracking data in which we first estimate the batter's intention conditional on ball-strike count and pitch location using a Bayesian hierarchical skew-normal model with random intercept and random slopes for batter. This yields batter-specific effects of count on swing metrics, which we leverage via instrumental variables regression to estimate causal effects of bat speed and swing length on contact and power outcomes. Finally, we valuate the tradeoff between contact and power due to bat speed by modeling a plate appearance as a Markov chain. We conclude that batters can reduce their strikeout rate by reducing bat speed as strikes increase, but the tradeoff in reduced power approximately counteracts the benefit to the average batter.

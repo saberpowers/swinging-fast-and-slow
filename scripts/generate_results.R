@@ -269,15 +269,14 @@ width <- 4
     width = width
   )
   bat_speed_contact_plot <- approach_effect_summary |>
-    # 1.242 is wOBA scaling factor for 2024 (https://www.fangraphs.com/guts.aspx)
-    ggplot2::ggplot(ggplot2::aes(x = 2 * strikes_bat_speed, y = 1.242 * pred_hit_diff)) +
+    ggplot2::ggplot(ggplot2::aes(x = 2 * strikes_bat_speed, y = pred_hit_diff)) +
     ggplot2::geom_hline(yintercept = 0, linetype = "dashed", color = color_fg, alpha = 0.5) +
     ggplot2::geom_point(col = color_blue, alpha = 0.5) +
     ggplot2::labs(
       x = "2-Strike Bat Speed Delta (mph)",
-      y = "xwOBA Effect in 2-Strike Counts"
+      y = "xLW Effect in 2-Strike Counts"
     ) +
-    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-.040", ".000", "+.040")) +
+    ggplot2::scale_y_continuous(breaks = c(-.04, 0, .04), labels = c("-.04", ".00", "+.04")) +
     ggplot2::coord_cartesian(ylim = c(-.07, .07)) +
     sputil::theme_sleek(mode = fig_mode)
   print(bat_speed_contact_plot)

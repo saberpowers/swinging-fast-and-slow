@@ -42,7 +42,7 @@
 
     \begin{figure}[H]
       \centering
-      \includegraphics[width = 0.8\textwidth]{../../figures/counterintuitive.pdf}
+      \includegraphics[width = 0.8\textwidth]{figures/counterintuitive.pdf}
       \caption{\it Distribution of bat speed relative to batter average by contact quality (squared up or not), across all swings in the dataset. The x-axis represents the difference between the bat speed and the batter's average bat speed. Following MLB's definition, a swing is considered ``squared up'' if the batted ball's exit velocity is at least 80\% of the theoretical maximum (given pitch speed and bat speed), a proxy for solid contact.}
       \label{fig:counterintuitive}
     \end{figure}
@@ -51,8 +51,8 @@
 
     \begin{figure}
       \centering
-      \includegraphics[width = 0.4\textwidth]{../../figures/swing_late.pdf}
-      \includegraphics[width = 0.4\textwidth]{../../figures/swing_early.pdf}
+      \includegraphics[width = 0.4\textwidth]{figures/swing_late.pdf}
+      \includegraphics[width = 0.4\textwidth]{figures/swing_early.pdf}
       \caption{\it A diagram illustrating the effect of swing timing on swing length measurement due to the fact that swing length is measured at the point of contact. Imagining two swings with the exact same mechanics, the left image shows the swing length measurement if the swing is late, and the right image shows the swing length measurement if the swing is early.}
       \label{fig:swing-diagram}
     \end{figure}
@@ -193,7 +193,7 @@
 
     \begin{figure}[H]
       \centering
-      \includegraphics[width = 0.8\textwidth]{../../figures/ex_speed_intent_distr.pdf}
+      \includegraphics[width = 0.8\textwidth]{figures/ex_speed_intent_distr.pdf}
       \caption{\it Distribution of bat speed for three different example batters, considering only swings which resulted in squared-up contact against pitchers' primary fastballs.}
       \label{fig:ex-bat-speed}
     \end{figure}
@@ -335,7 +335,7 @@
 
       \begin{table}[H]
         \centering
-        \input{../../tables/intention_elpd.tex}
+        \input{tables/intention_elpd.tex}
         \caption{\it Model comparison via expected log predictive density (ELPD). Shown are the difference in ELPD between the skew-normal (SK) and Gaussian models ($\Delta$ELPD), the standard error of ELPD difference (SE), and the number of standards errors by which the SK model outperforms the Gaussian model.}
         \label{tab:intention-model-elpd}
       \end{table}
@@ -344,14 +344,14 @@
 
       \begin{table}[H]
         \centering
-        \input{../../tables/fixed_effects.tex}
+        \input{tables/fixed_effects.tex}
         \caption{\it Posterior mean and 95\% credible interval lower/upper bounds for the fixed effects in the bat speed and swing length intention models.}
         \label{tab:fixed-effects}
       \end{table}
 
       \begin{figure}
         \centering
-        \includegraphics[width = 0.6\textwidth]{../../figures/approach.pdf}
+        \includegraphics[width = 0.6\textwidth]{figures/approach.pdf}
         \caption{\it Estimated batter random slopes for strikes in the intention model. Each point is a batter $b$, with the x-value representing $\hat\beta^S + \hat\gamma^S_b$ from the model (\ref{eqn:intention-swing-length}) and the y-value representing the same quantity from the analogous model for intended bat speed. This quantity is interpretable as the expected change in swing length (or bat speed) corresponding to a one-strike increase in the ball-strike count.}
         \label{fig:approach}
       \end{figure}
@@ -360,7 +360,7 @@
        
       \begin{table}[H]
         \centering
-        \input{../../tables/variances.tex}
+        \input{tables/variances.tex}
         \caption{\it Posterior mean and 95\% credible interval lower/upper bounds for the standard deviation of the random effect terms in the bat speed and swing length intention models.}
         \label{tab:intention-variances}
       \end{table}
@@ -369,7 +369,7 @@
       
       \begin{figure}[H]
         \centering
-        \includegraphics[width = \textwidth]{../../figures/intent_re.pdf}
+        \includegraphics[width = \textwidth]{figures/intent_re.pdf}
         \caption{\it Joint distribution of the posterior means for the batter-level $\mu_i$ random effects in the SK intention models for both bat speed and swing length. Each batter is displayed by their name, and only batters with at least 25 squared-up swings are displayed.}
         \label{fig:intent-re}
       \end{figure}
@@ -378,7 +378,7 @@
                 
       \begin{figure}[H]
         \centering
-        \includegraphics[width = 0.8\textwidth]{../../figures/alpha_re.pdf}
+        \includegraphics[width = 0.8\textwidth]{figures/alpha_re.pdf}
         \caption{\it Joint distribution of the posterior means for the batter-level $\alpha_i$ random effects in the SK intention models for both bat speed and swing length. Each batter is displayed by their name, and only batters with at least 25 squared-up swings are displayed.}
         \label{fig:alpha-re}
       \end{figure}
@@ -390,7 +390,7 @@
 
       \begin{table}[H]
         \centering
-        \input{../../tables/causal_model.tex}
+        \input{tables/causal_model.tex}
         \caption{\it Estimated regression coefficients and corresponding standard errors from the causal models (\ref{eqn:causal-contact})--(\ref{eqn:causal-hit}). Swing Length Approach is defined as the batter's change in swing length per strike added to the count, as estimated by (\ref{eqn:intention-swing-length}). Bat Speed Approach is defined as the batter's change in bat speed per strike added to the count, as estimated by the analagous model for intended bat speed.}
         \label{tab:causal-model}
       \end{table}
@@ -403,8 +403,8 @@
 
       \begin{figure}[H]
         \centering
-        \includegraphics[width = 0.49\textwidth]{../../figures/bat_speed_contact.pdf}
-        \includegraphics[width = 0.49\textwidth]{../../figures/bat_speed_power.pdf}
+        \includegraphics[width = 0.49\textwidth]{figures/bat_speed_contact.pdf}
+        \includegraphics[width = 0.49\textwidth]{figures/bat_speed_power.pdf}
         \caption{\it Estimated causal effect of bat speed on contact (left) and power (right). Each point is a batter; the x-axis shows how much the batter slows their swing in two-strike counts, relative to zero-strike counts; the y-axis shows the estimated combined effect of the batter's bat speed and swing length adjustments on contact rate (left) and xLW (right) in two-strike counts, from the models (\ref{eqn:causal-contact}) and (\ref{eqn:causal-hit}), respectively. xLW is expected linear weight, measured in runs per plate appearance (see Section \ref{sec:hit-outcome-model}).}
         \label{fig:results-causal}
       \end{figure}
@@ -416,7 +416,7 @@
 
       \begin{figure}[H]
         \centering
-        \includegraphics[width = 0.6\textwidth]{../../figures/approach_run_value.pdf}
+        \includegraphics[width = 0.6\textwidth]{figures/approach_run_value.pdf}
         \caption{\it Estimated causal effect of batters' approaches, measured on the scale of runs per 500 plate appearances. This figure shows the same data as Figure \ref{fig:approach} except that the background gradient reports the estimated run value of each approach. If an approach is valued at z runs, the interpretation is that the average batter with this approach is expected to produce z runs more than if they adopted an average approach, as measured by linear weights.}
         \label{fig:approach-run-value}
       \end{figure}
@@ -427,7 +427,7 @@
 
       \begin{table}
         \centering
-        \input{../../tables/approach_ranked.tex}
+        \input{tables/approach_ranked.tex}
         \caption{\it Top 5 and bottom 5 approaches, ranked by runs per 500 plate appearances. Bat Speed Approach and Swing Length Approach are the batter's change in bat speed and swing length, respectively, per strike added to the count. We estimate the effect that each approach would have on the average batter's performance, as measured on the run scale via linear weights.}
         \label{tab:approach-ranked}
       \end{table}
@@ -446,7 +446,7 @@
     
       \begin{figure}
         \centering
-        \includegraphics[width = 0.8\textwidth]{../../figures/adaptation.pdf}
+        \includegraphics[width = 0.8\textwidth]{figures/adaptation.pdf}
         \caption{\it Expected swing length by pitch location for two sample batters: Nico Hoerner (left) and Juan Soto (right), viewed from behind home plate. The thick vertical bars show the side of the plate on which the batter stands, and the dashed rectangle shows the strike zone, which depends on the height and stance of the batter. The color shows the predicted swing length  from model (\ref{eqn:intention-swing-length}) assuming a 0-0 count.}
         \label{fig:adaptation}
       \end{figure}
@@ -455,7 +455,7 @@
       
       \begin{figure}
         \centering
-        \includegraphics[width = 0.8\textwidth]{../../figures/residual_sd.pdf}
+        \includegraphics[width = 0.8\textwidth]{figures/residual_sd.pdf}
         \caption{\it Joint distribution of the standard deviations of the swing length (y-axis) and bat speed (x-axis) residuals for all swings (not just squared up on primary fastballs) relative to the intention model predictions. Each batter is displayed by their name, and only batters with at least 25 squared-up swings are displayed.}
         \label{fig:resid-sd}
       \end{figure}

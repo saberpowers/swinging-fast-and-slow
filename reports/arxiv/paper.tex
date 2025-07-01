@@ -46,7 +46,7 @@
 
     Like the famous problem of the bat and ball whose total cost is \$1.10 (\cite{kahneman_thinking_2011}), this is a problem for which slower, more deliberate thinking is helpful. The dilemma is due to how the data are measured. The measurement occurs at the point of contact, the timing of which is closely related to the outcome of the swing. Figure \ref{fig:swing-diagram} illustrates two hypothetical swings with identical swing mechanics, but because one swing is early and the other is late, the measurements are taken at different points in the swing. Thus, the timing of the swing affects the measured bat speed and swing length. From this perspective, bat speed and swing length are themselves outcomes of the swing, not entirely under the batter's control.
 
-    \begin{figure}[H]
+    \begin{figure}
       \centering
       \includegraphics[width = 0.4\textwidth]{../../figures/swing_late.pdf}
       \includegraphics[width = 0.4\textwidth]{../../figures/swing_early.pdf}
@@ -392,7 +392,7 @@
         \label{tab:causal-model}
       \end{table}
 
-      From the contact model, the negative coefficient $-0.177$ for bat speed approach shows that batters who reduce their bat speed more per strike (i.e. more negative bat speed approach) make contact more often in one-strike and two-strike counts. Similarly, the negative coefficient for swing length approach shows that batters who reduce their swing length more per strike make contact more often in these counts. These results match our intuition from baseball domain knowledge: More conservative swings are more likely to make contact, a more plausible conclusion than the counterintuitive results from the naive analysis shown in Figure \ref{fig:counterintuitive}. Bat speed approach and swing length approach have similar between-batter variance, so in comparing the coefficients we observed that bat speed approach has a much greater effect (more than 3x) on contact than does swing length approach. The fair ball probability model shows a similar effect direction for bat speed approach and no effect for swing length approach.
+      From the contact model, the negative coefficient $-0.176$ for bat speed approach shows that batters who reduce their bat speed more per strike (i.e. more negative bat speed approach) make contact more often in one-strike and two-strike counts. Similarly, the negative coefficient for swing length approach shows that batters who reduce their swing length more per strike make contact more often in these counts. These results match our intuition from baseball domain knowledge: More conservative swings are more likely to make contact, a more plausible conclusion than the counterintuitive results from the naive analysis shown in Figure \ref{fig:counterintuitive}. Bat speed approach and swing length approach have similar between-batter variance, so in comparing the coefficients we observed that bat speed approach has a much greater effect (more than 3x) on contact than does swing length approach. The fair ball probability model shows a similar effect direction for bat speed approach and no effect for swing length approach.
 
       From the xLW model (i.e. the ``power'' model), the positive coefficient $0.023$ for bat speed approach shows that batters who reduce their bat speed more per strike (i.e. more negative bat speed approach) exhibit less power in one-strike and two-strike counts when they do make contact. This demonstrates evidence for the intuitive tradeoff involved when taking more conservative swings: greater contact but less power. Swing length approach does not seem to have an effect on power.
 
@@ -413,16 +413,16 @@
 
       \begin{figure}[H]
         \centering
-        \includegraphics[width = 0.8\textwidth]{../../figures/approach_run_value.pdf}
+        \includegraphics[width = 0.6\textwidth]{../../figures/approach_run_value.pdf}
         \caption{\it Estimated causal effect of batters' approaches, measured on the scale of runs per 500 plate appearances. This figure shows the same data as Figure \ref{fig:approach} except that the background gradient reports the estimated run value of each approach. If an approach is valued at z runs, the interpretation is that the average batter with this approach is expected to produce z runs more than if they adopted an average approach, as measured by linear weights.}
         \label{fig:approach-run-value}
       \end{figure}
 
       The magnitude of the difference between the higest-value approaches and the lowest-value approaches is small, approximately 4 runs per 500 plate appearances. To put this in context, it amounts to a difference of roughly half a win per season (\cite{slowinski_converting_2010}). Baseball teams are chasing increasingly small competitive advantages, and the cost of half a win is roughly \$4 million in the free agent market (\cite{clemens_what_2021}). We observe that the highest-value approaches are those which cut down on swing length without cutting down on bat speed. From Table \ref{tab:causal-model}, we observe that this is a way to avoid the contact/power tradeoff because cutting down on swing length (all else equal) increases contact without decreasing power.
 
-      Table \ref{tab:approach-ranked} reports the specific approaches and corresponding run values of the top 5 and bottom 5 batters, ranked according to the run value of their approaches {\it applied to an average batter}. Interestingly, three of the top four batters (Chapman, Olson and Canha) all spent the first five or more seasons of their MLB careers with the Oakland Athletics. At the other end of the table, Rizzo and Turner are very highly accomplished batters. The spread of overall batter talent is much greater than the small spread explained by approach.
+      Table \ref{tab:approach-ranked} reports the specific approaches and corresponding run values of the top 5 and bottom 5 batters, ranked according to the run value of their approaches {\it applied to an average batter}. Interestingly, the top three batters (Chapman, Olson and Canha) all spent the first five or more seasons of their MLB careers around the same time with the Oakland Athletics.
 
-      \begin{table}[H]
+      \begin{table}
         \centering
         \input{../../tables/approach_ranked.tex}
         \caption{\it Top 5 and bottom 5 approaches, ranked by runs per 500 plate appearances. Bat Speed Approach and Swing Length Approach are the batter's change in bat speed and swing length, respectively, per strike added to the count. We estimate the effect that each approach would have on the average batter's performance, as measured on the run scale via linear weights.}
@@ -441,7 +441,7 @@
 
     While Section \ref{sec:results-value} illustrated the tradeoff involved with how batters vary their \textit{approach}, there are of course other sources of variation in bat speed and swing length. For example, in Section \ref{sec:methods-intention} we define \textit{adaptation} as the extent to which a batter's swing tracking metrics co-vary with pitch location. As captured by $\sigma_b^X$ and $\sigma_b^Z$ in Table \ref{tab:intention-variances} and the posterior means of the batter-level random effects in Figure \ref{fig:intent-re}, we observe differences between batters in their swing \textit{adaptation} as the pitch location varies horizontally and vertically. To demonstrate the variation, Figure \ref{fig:adaptation} displays the expected swing length from the intention model by pitch location for two sample batters, Nico Hoerner and Juan Soto (assuming a 0-0 count). Hoerner displays a clear relationship with the vertical location with shorter intended swings on average for pitches that are located higher in the zone. In comparison, Soto displays a fairly consistent swing length throughout the zone, with an uptick in length for low and away pitches, versus a shortening of the swing for high and inside pitches. Understanding why batters display such variation in their \textit{adaptation} is left for future work, and could be explored with swing path measurements describing the tilt and attack angle that were released during the 2025 MLB season (\cite{petriello_4_2025}).
     
-      \begin{figure}[H]
+      \begin{figure}
         \centering
         \includegraphics[width = 0.8\textwidth]{../../figures/adaptation.pdf}
         \caption{\it Expected swing length by pitch location for two sample batters: Nico Hoerner (left) and Juan Soto (right), viewed from behind home plate. The thick vertical bars show the side of the plate on which the batter stands, and the dashed rectangle shows the strike zone, which depends on the height and stance of the batter. The color shows the predicted swing length  from model (\ref{eqn:intention-swing-length}) assuming a 0-0 count.}
@@ -465,11 +465,11 @@
 
       Additional releases of metrics from MLB could help with future work on swing tracking data. Bat speed and swing length, measured at contact, provide only a hint at the full swing path and need to be interpreted carefully. In May 2025, MLB released three new pitch-by-pitch level metrics describing the orientation and movement of the bat at contact: attack angle, attack direction and swing tilt (\cite{petriello_4_2025}). MLB has hinted that more metrics are in the works, such as contact depth and miss distance (\cite{petriello_everything_2024}). These two metrics would be particularly interesting because contact depth would help contextualize swing length and bat speed, and miss distance would provide significantly more precise data for batter and pitcher evaluation as compared with binary contact/miss outcomes.
 
-  \section*{Acknowledgments}
+  \subsection*{Acknowledgments}
 
-    The authors are grateful to Noah Woodward and Nick Wan for discussions and feedback on early versions of this work.
+    The authors thank Noah Woodward and Nick Wan for early stage discussions and feedback on this work.
 
-  \section*{Code availability}
+  \subsection*{Code availability}
 
   All code related to this paper is available at \url{https://github.com/saberpowers/swinging-fast-and-slow}.
 

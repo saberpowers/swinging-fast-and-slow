@@ -200,7 +200,16 @@ tibble::tibble(
   hit = display_coef(causal_model$fit_hit, scale = c(1, 1 / 12))
 ) |>
   tibble::column_to_rownames() |>
-  sputil::write_latex_table("tables/causal_model.tex", include.rownames = TRUE)
+  sputil::write_latex_table(
+    "tables/causal_model.tex",
+    colnames = c(
+      "Contact Model (\\ref{eqn:causal-contact})",
+      "Fair/Foul Model (\\ref{eqn:causal-fair})",
+      "xLW Model (\\ref{eqn:causal-hit})"
+    ),
+    align = "l|r|r|r|",
+    include.rownames = TRUE
+  )
 
 data_with_approach <- data |>
   dplyr::filter(strikes == 2) |>
@@ -378,7 +387,13 @@ approach_interpreted |>
     strikes_swing_length = glue::glue("${sprintf('%.2f', strikes_swing_length)}$"),
     runs = glue::glue("${sprintf('%.2f', runs)}$"),
   ) |>
-  sputil::write_latex_table("tables/approach_ranked.tex", buffer_row = 6)
+  sputil::write_latex_table(
+    file = "tables/approach_ranked.tex",
+    colnames = c("", "Batter", "Bat Speed (mph)", "Swing Length (in.)", "500 PA"),
+    prefix_rows = "& & \\multicolumn{2}{c|}{Approach} & Runs /",
+    align = "rl|rr|r",
+    buffer_row = 6
+  )
 
 
 # 4.3 Other Sources of Swing Variation ----

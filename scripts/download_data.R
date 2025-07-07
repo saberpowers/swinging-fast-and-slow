@@ -1,15 +1,15 @@
 
-#devtools::install_github(repo = "saberpowers/sabRmetrics")
+# Download pitch-by-pitch tracking and results data ----
 
 cluster <- parallel::makeCluster(parallel::detectCores())
-data_baseballsavant <- sabRmetrics::download_baseballsavant(
+baseballsavant <- sabRmetrics::download_baseballsavant(
   start_date = "2024-04-03",  # first day of swing tracking data
   end_date = "2024-12-31",
   cl = cluster
 )
 parallel::stopCluster(cluster)
 
-data_baseballsavant |>
+baseballsavant |>
   dplyr::select(
     game_date, game_id, event_index, pitch_number, batter_id, bat_side, batter_name,
     pitcher_id, inning, half_inning, outs, balls, strikes,
@@ -19,3 +19,11 @@ data_baseballsavant |>
     description, des
   ) |>
   data.table::fwrite(file = "data/baseballsavant.csv")
+
+
+# Download player data ----
+
+player <- sabRmetrics::download_player(year = 2024, level = "MLB")
+player |>
+  dplyr::select(player_id, name_full, birth_date, bat_side, throw_hand, primary_position) |>
+  data.table::fwrite(file = "data/player.csv")

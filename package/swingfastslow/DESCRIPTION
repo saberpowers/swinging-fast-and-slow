@@ -1,6 +1,6 @@
 Package: swingfastslow
 Title: Tools for Interpreting Variation in Baseball Swing Tracking Metrics
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(
   person("Scott", "Powers", role = c("aut", "cre"), email = "scott.powers@rice.edu"),
   person("Ronald", "Yurko", role = "aut", email = "ryurko@andrew.cmu.edu"))
@@ -14,6 +14,8 @@ License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Depends:
+  R (>= 4.1.0)
 Imports:
   brms,
   dplyr,

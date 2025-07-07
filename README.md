@@ -33,6 +33,7 @@ devtools::install_github(
 ├── figures                             # results in .pdf and .png form
 ├── package                             # R package
 │   └── swingfastslow
+├── renv                                # reproducible environment files
 ├── scripts                             # R code for reproducing results
 |   ├── download_data.R
 |   ├── estimate_models.R

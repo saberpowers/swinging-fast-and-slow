@@ -25,13 +25,14 @@ devtools::install_github(
 ## Folder Structure
 
 ```
+├── articles                            # LaTeX code for papers and slides
+│   ├── arxiv
+│   ├── cassis
+│   ├── saberseminar
+│   └── tas
 ├── figures                             # results in .pdf and .png form
 ├── package                             # R package
 │   └── swingfastslow
-├── reports                             # LaTeX code for papers and slides
-│   ├── arxiv
-│   ├── cassis
-│   └── saberseminar
 ├── scripts                             # R code for reproducing results
 |   ├── download_data.R
 |   ├── estimate_models.R

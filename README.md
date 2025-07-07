@@ -1,6 +1,6 @@
 # Swinging, Fast and Slow: Interpreting variation in baseball swing tracking metrics
 
-Scott Powers and Ron Yurko
+Scott Powers and Ronald Yurko
 [preprint](https://arxiv.org/abs/2507.01238)
 
 2024 Cascadia Symposium on Statistics in Sports (Vancouver)

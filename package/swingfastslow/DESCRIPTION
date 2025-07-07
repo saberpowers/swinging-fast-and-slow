@@ -1,9 +1,9 @@
 Package: swingfastslow
-Title: Tools for downloading and analyzing swing tracking data from Basball Savant
-Version: 0.0.0.9000
+Title: Tools for Interpreting Variation in Baseball Swing Tracking Metrics
+Version: 1.0.0
 Authors@R: c(
   person("Scott", "Powers", role = c("aut", "cre"), email = "scott.powers@rice.edu"),
-  person("Ron", "Yurko", role = "aut", email = "ryurko@andrew.cmu.edu"))
+  person("Ronald", "Yurko", role = "aut", email = "ryurko@andrew.cmu.edu"))
 Description: In May 2024, MLB released exciting new swing tracking data. Bat speed and swing length
   are recorded at contact (or at the point in the swing path closest to contacting the ball).
   Because the batter's timing affects where the measurement occurs along the swing path, care must
@@ -15,9 +15,21 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports:
+  brms,
   dplyr,
-  stringr
-Suggests:
   predpitchscore,
-  sabRmetrics,
+  stringr,
+  tidybayes,
+  tidyr,
   xgboost
+Suggests:
+  data.table,
+  ggplot2,
+  glue,
+  magick,
+  mgcv,
+  parallel,
+  pbapply,
+  readr,
+  sabRmetrics,
+  tibble

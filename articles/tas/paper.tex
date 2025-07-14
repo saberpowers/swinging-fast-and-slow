@@ -161,7 +161,7 @@
 
 
 
-\newcommand{\anon}{0}
+\newcommand{\anon}{1}
 
 %set the key \texttt{anon} to ``0'' to hide the authors and acknowledgements,
 %  producing the required anonymized version. 
@@ -184,10 +184,10 @@
 \if1\anon
 {
   \title{\bf Swinging, Fast and Slow: Interpreting Variation in Baseball Swing Tracking Metrics}
-  \author{Scott Powers \\
+  \author{Scott Powers\thanks{Both authors contributed equally to this work.} \\
     Department of Sport Management, Rice University \\
     and \\
-    Ronald Yurko \\
+    Ronald Yurko$^{\footnotesize *}$ \\
     Department of Statistics \& Data Science, Carnegie Mellon University
   }
   \maketitle
@@ -347,6 +347,7 @@
         Table \ref{tab:xgboost-hyperparameters} provides details of the pitch outcome component models. We trained the pitch outcome model using the \texttt{R} package \texttt{predpitchscore} \citep{powers_predpitchscore_2025}, which relies on the eXtreme Gradient Boosting (XGBoost) algorithm \citep{chen_xgboost_2016}. Models were trained on MLB regular season pitches from 2022 through 2024 with 5-fold cross-validation for hyperparameter tuning.
   
         \begin{table}
+          \footnotesize
           \hspace{-6mm}
           \begin{tabular}{cl|rrrr}
                   &                                             & \multicolumn{4}{c}{XGBoost Hyperparameters}\\
@@ -654,52 +655,19 @@
       We limited our analysis of the run value of approach to its effect on a batter of average skill, but it is possible that the results in Section \ref{sec:results-value} could differ depending on the profile of the batter. For example, the value of a specific approach could be different for high-contact, low-power batters versus low-contact, high-power batters. Future work could estimate personalized effects of batter approach based on the batter's strengths and weaknesses. Additionally, the estimated run value was based on linear weights, which ignore the base-out situation. With a runner on third base and fewer than two outs, the value of putting the ball in play (relative to non-ball-in-play outcomes) increases, so presumably the tradeoff of increased contact for decreased power is more valuable in this situation. Future work could estimate this effect and evaluate the extent to which batters tailor their approach to the base-out situation.
 
       Additional releases of metrics from MLB could help with future work on swing tracking data. Bat speed and swing length, measured at contact, provide only a hint at the full swing path and need to be interpreted carefully. In May 2025, MLB released three new pitch-by-pitch level metrics describing the orientation and movement of the bat at contact: attack angle, attack direction and swing tilt \citep{petriello_4_2025}. MLB has hinted that more metrics are in the works, such as contact depth and miss distance \citep{petriello_everything_2024}. These two metrics would be particularly interesting because contact depth would help contextualize swing length and bat speed, and miss distance would provide significantly more precise data for batter and pitcher evaluation as compared with binary contact/miss outcomes.
+ 
+  \subsection*{Acknowledgments}
+
+    The authors thank Noah Woodward and Nick Wan for early stage discussions and feedback on this work.
 
   \section*{Disclosure Statement}
   
     The authors report there are no competing interests to declare.
 
-  \section*{Code Availability}
-
-    All code related to this paper is available at \url{https://github.com/saberpowers/swinging-fast-and-slow}.
-   
-  \section{Data Availability Statement}\label{data-availability-statement}
+  \section*{Data Availability Statement}
   
-    Deidentified data have been made available at the following URL: XX.
- 
+    Data and models have been made available at the following URL: \url{https://doi.org/10.25611/7QXV-8612}. All code is available at \url{https://github.com/saberpowers/swinging-fast-and-slow}.
+
   \bibliography{../swingfastslow.bib}
-
-
-
-  \begin{itemize}
-  \tightlist
-  \item
-    If you have supplementary material (e.g., software, data, technical
-    proofs), identify them in the section below. In early stages of the
-    submission process, you may be unsure what to include as supplementary
-    material. Don't worry---this is something that can be worked out at
-    later stages.
-  \end{itemize}
- 
-  \phantomsection\label{supplementary-material}
-  \bigskip
-  
-  \begin{center}
-  
-  {\large\bf SUPPLEMENTARY MATERIAL}
-  
-  \end{center}
-  
-  \begin{description}
-  \item[Title:]
-  Brief description. (file type)
-  \item[R-package for MYNEW routine:]
-  R-package MYNEW containing code to perform the diagnostic methods
-  described in the article. The package also contains all datasets used as
-  examples in the article. (GNU zipped tar file)
-  \item[HIV data set:]
-  Data set used in the illustration of MYNEW method in
-  Section~\ref{sec-verify} (.txt file).
-  \end{description}
 
 \end{document}

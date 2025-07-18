@@ -22,6 +22,10 @@ devtools::install_github(
 )
 ```
 
+## Downloading our input data and models
+
+Our input data and models are available at https://doi.org/10.25611/7QXV-8612. To use them, download and unzip the file from the DOI, and then copy over the `data` and `models` folders into your local copy of the repository.
+
 ## Folder Structure
 
 ```
@@ -42,7 +46,3 @@ devtools::install_github(
 |   └── generate_results.R
 └── tables                              # results in .tex form
 ```
-
-## Data and Models
-
-If you would like to use our data and model files, download and unzip the file at https://doi.org/10.25611/7QXV-8612. Then copy over the `data` and `models` folders into your local copy of the repository.

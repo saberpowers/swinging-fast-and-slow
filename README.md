@@ -30,7 +30,9 @@ devtools::install_github(
 │   ├── cassis
 │   ├── saberseminar
 │   └── tas
+├── data                                # not tracked by git; see below
 ├── figures                             # results in .pdf and .png form
+├── models                              # not tracked by git; see below
 ├── package                             # R package
 │   └── swingfastslow
 ├── renv                                # reproducible environment files
@@ -40,3 +42,7 @@ devtools::install_github(
 |   └── generate_results.R
 └── tables                              # results in .tex form
 ```
+
+## Data and Models
+
+If you would like to use our data and model files, download and unzip the file at https://doi.org/10.25611/7QXV-8612. Then copy over the `data` and `models` folders into your local copy of the repository.

@@ -26,7 +26,7 @@ devtools::install_github(
 
 Our input data and models are available at https://doi.org/10.25611/7QXV-8612. To use them, download and unzip the file from the DOI, and then copy over the `data` and `models` folders into your local copy of the repository.
 
-## Folder Structure
+## Folder structure
 
 ```
 ├── articles                            # LaTeX code for papers and slides
@@ -34,9 +34,9 @@ Our input data and models are available at https://doi.org/10.25611/7QXV-8612. T
 │   ├── cassis
 │   ├── saberseminar
 │   └── tas
-├── data                                # not tracked by git; see below
+├── data                                # not tracked by git; see above
 ├── figures                             # results in .pdf and .png form
-├── models                              # not tracked by git; see below
+├── models                              # not tracked by git; see above
 ├── package                             # R package
 │   └── swingfastslow
 ├── renv                                # reproducible environment files

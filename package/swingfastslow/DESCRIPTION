@@ -1,6 +1,6 @@
 Package: swingfastslow
 Title: Tools for Interpreting Variation in Baseball Swing Tracking Metrics
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: c(
   person("Scott", "Powers", role = c("aut", "cre"), email = "scott.powers@rice.edu"),
   person("Ronald", "Yurko", role = "aut", email = "ryurko@andrew.cmu.edu"))

@@ -22,6 +22,15 @@ devtools::install_github(
 )
 ```
 
+## Restoring the reproducible environment
+
+If your goal is to reproduce the results in the paper, start by using renv to install the same package versions we used. The swingfastslow package exists in this repository, so you want to install it before using renv to restore the rest of the packages.
+
+```R
+devtools::install("packages/swingfastslow")
+renv::restore()
+```
+
 ## Downloading our input data and models
 
 Our input data and models are available at https://doi.org/10.25611/7QXV-8612. To use them, download and unzip the file from the DOI, and then copy over the `data` and `models` folders into your local copy of the repository.

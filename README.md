@@ -44,14 +44,13 @@ Our input data and models are available at https://doi.org/10.25611/7QXV-8612. T
 │   ├── saberseminar
 │   └── tas
 ├── data                                # not tracked by git; see above
-├── figures                             # results in .pdf and .png form
 ├── models                              # not tracked by git; see above
+├── output                              # models, figures, tables go here
 ├── package                             # R package
 │   └── swingfastslow
 ├── renv                                # reproducible environment files
-├── scripts                             # R code for reproducing results
-|   ├── download_data.R
-|   ├── estimate_models.R
-|   └── generate_results.R
-└── tables                              # results in .tex form
+└── scripts                             # R code for reproducing results
+    ├── download_data.R
+    ├── estimate_models.R
+    └── generate_results.R
 ```

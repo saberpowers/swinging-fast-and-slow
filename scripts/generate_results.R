@@ -1,6 +1,8 @@
 
 # Preliminaries ----
 
+dir_figures <- "output/figures"
+dir_tables <- "output/tables"
 fig_mode <- "light"
 fig_type <- "pdf"
 fig_suffix <- glue::glue("{ifelse(fig_mode == 'dark', '_dark', '')}.{fig_type}")
@@ -52,7 +54,11 @@ data_plot <- swing |>
   dplyr::ungroup()
 
 {
-  sputil::open_device(paste0("figures/counterintuitive", fig_suffix), height = 3, width = 6)
+  sputil::open_device(
+    file = file.path(dir_figures, glue::glue("counterintuitive{fig_suffix}")),
+    height = 3,
+    width = 6
+  )
   plot <- data_plot |>
     dplyr::mutate(squared_up = ifelse(squared_up, "Yes", "No")) |>
     ggplot2::ggplot(ggplot2::aes(squared_up, relative_bat_speed)) +
@@ -128,7 +134,11 @@ create_swing_diagram <- function(rotation_angle, ball_loc, label) {
 }
 
 {
-  sputil::open_device(paste0("figures/swing_late", fig_suffix), height = 2, width = 2)
+  sputil::open_device(
+    file = file.path(dir_figures, glue::glue("swing_late{fig_suffix}")),
+    height = 2,
+    width = 2
+  )
   plot <- create_swing_diagram(
     rotation_angle = 20,
     ball_loc = c(6, -1.1),
@@ -139,7 +149,11 @@ create_swing_diagram <- function(rotation_angle, ball_loc, label) {
 }
 
 {
-  sputil::open_device(paste0("figures/swing_early", fig_suffix), height = 2, width = 2)
+  sputil::open_device(
+    file = file.path(dir_figures, glue::glue("swing_early{fig_suffix}"),
+    height = 2,
+    width = 2
+  )
   plot <- create_swing_diagram(
     rotation_angle = -20,
     ball_loc = c(6, 3.3),
@@ -163,7 +177,11 @@ approach_interpreted <- approach |>
     ) 
 
 {
-  sputil::open_device(paste0("figures/approach", fig_suffix), height = 4, width = 5)
+  sputil::open_device(
+    file = file.path(dir_figures, glue::glue("approach{fig_suffix}")),
+    height = 4,
+    width = 5
+  )
   plot <- approach_interpreted |>
     ggplot2::ggplot(ggplot2::aes(x = strikes_swing_length, y = strikes_bat_speed)) +
     ggplot2::geom_point(color = color_blue, alpha = 0.5) +
@@ -201,7 +219,7 @@ tibble::tibble(
 ) |>
   tibble::column_to_rownames() |>
   sputil::write_latex_table(
-    "tables/causal_model.tex",
+    file.path(dir_tables, "causal_model.tex"),
     colnames = c(
       "Contact Model (\\ref{eqn:causal-contact})",
       "Fair/Foul Model (\\ref{eqn:causal-fair})",
@@ -253,7 +271,8 @@ height <- 3
 width <- 4
 
 {
-  sputil::open_device(paste0("figures/bat_speed_contact", fig_suffix),
+  sputil::open_device(
+    file = file.path(dir_figures, glue::glue("bat_speed_contact{fig_suffix}")),
     height = height,
     width = width
   )
@@ -273,7 +292,8 @@ width <- 4
 }
 
 {
-  sputil::open_device(paste0("figures/bat_speed_power", fig_suffix),
+  sputil::open_device(
+    file = file.path(dir_figures, glue::glue("bat_speed_power{fig_suffix}")),
     height = height,
     width = width
   )
@@ -349,7 +369,11 @@ approach_grid_with_pred <- approach_grid |>
   dplyr::filter(runs >= min(approach_value$runs), runs <= max(approach_value$runs))
 
 {
-  sputil::open_device(paste0("figures/approach_run_value", fig_suffix), height = 4, width = 5)
+  sputil::open_device(
+    file = file.path(dir_figures, glue::glue("approach_run_value{fig_suffix}")),
+    height = 4,
+    width = 5
+  )
   plot <- approach_grid_with_pred |>
     ggplot2::ggplot(ggplot2::aes(strikes_swing_length, strikes_bat_speed)) +
     ggplot2::geom_raster(ggplot2::aes(fill = runs)) +
@@ -388,7 +412,7 @@ approach_interpreted |>
     runs = glue::glue("${sprintf('%.2f', runs)}$"),
   ) |>
   sputil::write_latex_table(
-    file = "tables/approach_ranked.tex",
+    file.path(dir_tables, "approach_ranked.tex"),
     colnames = c("", "Batter", "Bat Speed (mph)", "Swing Length (in.)", "500 PA"),
     prefix_rows = "& & \\multicolumn{2}{c|}{Approach} & Runs /",
     align = "rl|rr|r",
@@ -399,7 +423,11 @@ approach_interpreted |>
 # 4.3 Other Sources of Swing Variation ----
 
 {
-  sputil::open_device(paste0("figures/adaptation", fig_suffix), height = 3.5, width = 6)
+  sputil::open_device(
+    file = file.path(dir_figures, glue::glue("figures/adaptation{fig_suffix}")),
+    height = 3.5,
+    width = 6
+  )
 
   batter_side_id_1 <- "663538R"
   batter_name_1 <- "Nico Hoerner"

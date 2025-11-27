@@ -27,3 +27,6 @@ models/*
 
 sandbox/ryurko/models/
 sandbox/ryurko/notes/
+
+**.Rproj
+**.Rhistory

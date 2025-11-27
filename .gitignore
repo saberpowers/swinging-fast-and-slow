@@ -23,3 +23,7 @@ models/*
 *.toc
 
 .Rproj.user
+
+
+sandbox/ryurko/models/
+sandbox/ryurko/notes/

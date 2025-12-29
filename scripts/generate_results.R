@@ -210,6 +210,10 @@ display_coef <- function(fit, scale) {
   )
 }
 
+format_pct <- function(pct, digits = 2) {
+  paste0(sprintf(glue::glue("%.{digits}f"), 100 * pct), "\\%")
+}
+
 tibble::tibble(
   rowname = c("Bat Speed Approach (mph)", "Swing Length Approach (inches)"),
   # Scale swing length effect by 1/12 to reflect inches rather than feet
@@ -217,6 +221,14 @@ tibble::tibble(
   fair = display_coef(causal_model$fit_fair, scale = c(1, 1 / 12)),
   hit = display_coef(causal_model$fit_hit, scale = c(1, 1 / 12))
 ) |>
+  dplyr::bind_rows(
+    tibble::tibble(
+      rowname = "Percent Deviance Explained",
+      contact = format_pct(with(causal_model$fit_contact, (null.deviance - deviance) / null.deviance)),
+      fair = format_pct(with(causal_model$fit_fair, (null.deviance - deviance) / null.deviance)),
+      hit = format_pct(summary(causal_model$fit_hit)$r.squared)
+    )
+  ) |>
   tibble::column_to_rownames() |>
   sputil::write_latex_table(
     file.path(dir_tables, "causal_model.tex"),
@@ -225,8 +237,9 @@ tibble::tibble(
       "Fair/Foul Model (\\ref{eqn:causal-fair})",
       "xLW Model (\\ref{eqn:causal-hit})"
     ),
-    align = "l|r|r|r|",
-    include.rownames = TRUE
+    align = "l|c|c|c|",
+    include.rownames = TRUE,
+    hline.after = c(0, 2)
   )
 
 data_with_approach <- data |>

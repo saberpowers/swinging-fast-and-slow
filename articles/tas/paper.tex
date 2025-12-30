@@ -169,7 +169,7 @@
 % acknowledgments.
 
 \usepackage{amsfonts, tikz}
-\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+\usetikzlibrary{arrows.meta, decorations.pathmorphing, positioning, shapes.geometric}
 \tikzset{>={To[length=3mm,width=3mm]}}
 \graphicspath {{../../output/figures/}}
 \newcommand{\tablepath}{../../output/tables/}
@@ -269,7 +269,7 @@
   \section{Data}
   \label{sec:data}
 
-    Our dataset comprises 685,143 pitches thrown during the 2024 MLB regular season. This publicly available dataset was downloaded from Baseball Savant \citep{mlb_advanced_media_statcast_2024} using the \texttt{R} package \texttt{sabRmetrics} \citep{powers_sabrmetrics_2025}. For each pitch, we observe the identities and handedness (left/right) of the batter and pitcher involved and the ball-strike count prior to the pitch. We also observe pitch tracking information, most notably the pitch type (e.g. fastball, curveball, changeup) and the $(x, z)$ location where the pitch crosses the front of home plate. The pitch tracking information is sufficient to recreate an estimate of the pitch's full trajectory as a three-dimensional quadratic function of time $(x(t), y(t), z(t))$ and to recreate the corresponding pitch metrics such as release point, release speed, and vertical/horizontal break. Each pitch has a categorical outcome, which can be one of: Hit by Pitch (HBP), Called Ball, Called Strike, Swinging Strike, Foul Ball, or Fair Ball.
+    Our dataset comprises 685,143 pitches thrown during the 2024 MLB regular season. This publicly available dataset was downloaded from Baseball Savant \citep{baseball_savant_statcast_2024} using the \texttt{R} package \texttt{sabRmetrics} \citep{powers_sabrmetrics_2025}. For each pitch, we observe the identities and handedness (left/right) of the batter and pitcher involved and the ball-strike count prior to the pitch. We also observe pitch tracking information, most notably the pitch type (e.g. fastball, curveball, changeup) and the $(x, z)$ location where the pitch crosses the front of home plate. The pitch tracking information is sufficient to recreate an estimate of the pitch's full trajectory as a three-dimensional quadratic function of time $(x(t), y(t), z(t))$ and to recreate the corresponding pitch metrics such as release point, release speed, and vertical/horizontal break. Each pitch has a categorical outcome, which can be one of: Hit by Pitch (HBP), Called Ball, Called Strike, Swinging Strike, Foul Ball, or Fair Ball.
 
     For pitches on which the batter swings, we observe bat tracking information describing the bat speed and the swing length (detailed in Section \ref{sec:measurement}). \revision{The dataset includes 316,659 tracked swings.} For pitches that are hit into play (i.e. the Fair Ball outcome), we observe the initial exit speed and vertical exit angle (relative to the ground) of the ball as it leaves the bat. We also observe each fair batted ball's manually charted hit coordinates (on the field), which serves as a proxy for the horizontal exit angle of the ball off the bat.
 
@@ -632,7 +632,7 @@
       \end{table}
 
       \revision{
-        Table \ref{tab:intention-r2} summarizes the fraction of variance explained by the intention models based on the $R^2$ definition in \cite{gelman2019r}. Our model explains a higher fraction of variance in swing length compared to bat speed, and observe that most of the explained variation comes from the considered random effects for for both response variables.}
+        Table \ref{tab:intention-r2} summarizes the fraction of variance explained by the intention models based on the $R^2$ definition in \cite{gelman_r-squared_2019}. Our model explains a higher fraction of variance in swing length compared to bat speed, and observe that most of the explained variation comes from the considered random effects for for both response variables.}
       
 
       \begin{table}[H]
